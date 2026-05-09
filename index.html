@@ -108,5 +108,66 @@
     });
   </script>
 
+  <script type="module">
+  import { 
+    getFirestore, 
+    collection, 
+    addDoc, 
+    deleteDoc, 
+    doc, 
+    onSnapshot 
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const db = getFirestore();
+
+  // Référence à la collection
+  const lobbiesRef = collection(db, "lobbies");
+
+  // 🔥 Ajouter un lobby
+  window.addLobby = async (url, label) => {
+    if (!window.currentUser) {
+      alert("Tu dois être connecté pour créer un lobby");
+      return;
+    }
+
+    await addDoc(lobbiesRef, {
+      url,
+      label,
+      owner: window.currentUser.uid,
+      createdAt: Date.now()
+    });
+  };
+
+  // 🔥 Supprimer un lobby
+  window.deleteLobby = async (id, owner) => {
+    if (!window.currentUser || window.currentUser.uid !== owner) {
+      alert("Tu ne peux pas supprimer le lobby de quelqu'un d'autre");
+      return;
+    }
+
+    await deleteDoc(doc(db, "lobbies", id));
+  };
+
+  // 🔥 Affichage en temps réel
+  onSnapshot(lobbiesRef, snapshot => {
+    const container = document.getElementById("lobbies");
+    container.innerHTML = "";
+
+    snapshot.forEach(docu => {
+      const data = docu.data();
+      const div = document.createElement("div");
+
+      div.innerHTML = `
+        <p><strong>${data.label}</strong></p>
+        <p>${data.url}</p>
+        <button onclick="deleteLobby('${docu.id}', '${data.owner}')">Supprimer</button>
+        <hr>
+      `;
+
+      container.appendChild(div);
+    });
+  });
+</script>
+
 </body>
 </html>
