@@ -55,6 +55,18 @@
       font-size: 1rem;
     }
 
+    /* Barre de recherche */
+    #searchBar {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 16px;
+      border: 4px solid #000;
+      background: #fff;
+      color: #000;
+      font-size: 1rem;
+      margin-bottom: 20px;
+    }
+
     button {
       border: 4px solid #000;
       border-radius: 16px;
@@ -128,6 +140,13 @@
       <button id="addLobbyBtn">+ Ajouter</button>
     </div>
 
+    <!-- 🔍 Barre de recherche -->
+    <input
+      type="text"
+      id="searchBar"
+      placeholder="Rechercher un lobby..."
+    />
+
     <div class="lobbies" id="lobbiesContainer"></div>
   </div>
 
@@ -138,6 +157,7 @@
     const addBtn = document.getElementById('addLobbyBtn');
     const container = document.getElementById('lobbiesContainer');
     const errorBox = document.getElementById('error');
+    const searchBar = document.getElementById('searchBar');
 
     function loadLobbies() {
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -155,17 +175,24 @@
 
     function renderLobbies() {
       const lobbies = loadLobbies();
+      const filter = searchBar.value.toLowerCase();
+
       container.innerHTML = '';
 
-      if (lobbies.length === 0) {
+      const filtered = lobbies.filter(l =>
+        l.url.toLowerCase().includes(filter) ||
+        (l.label && l.label.toLowerCase().includes(filter))
+      );
+
+      if (filtered.length === 0) {
         const empty = document.createElement('div');
         empty.className = 'empty';
-        empty.textContent = 'Aucun lobby pour le moment. Ajoute-en un avec le bouton +.';
+        empty.textContent = 'Aucun lobby trouvé.';
         container.appendChild(empty);
         return;
       }
 
-      lobbies.forEach((lobby, index) => {
+      filtered.forEach((lobby, index) => {
         const row = document.createElement('div');
         row.className = 'lobby';
 
@@ -234,6 +261,9 @@
     steamInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') addLobby();
     });
+
+    // 🔍 Recherche en temps réel
+    searchBar.addEventListener('input', renderLobbies);
 
     renderLobbies();
   </script>
