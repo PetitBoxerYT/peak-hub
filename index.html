@@ -2,8 +2,11 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Peak Multiplayer Hub</title>
-<link rel="icon" type="image/png" href="favicon.png">
+
+  <!-- Favicon Peak -->
+  <link rel="icon" type="image/png" href="favicon.png">
 
   <!-- Police Peak -->
   <link href="https://fonts.googleapis.com/css2?family=Darumadrop+One&display=swap" rel="stylesheet">
@@ -11,262 +14,99 @@
   <style>
     body {
       font-family: "Darumadrop One", sans-serif;
-      background: #f7f2e8;
-      background-image: url("data:image/svg+xml,%3Csvg width='200' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='20' y='100' font-size='80' fill='%23e8dcc4' font-family='sans-serif'%3E🦀%3C/text%3E%3C/svg%3E");
-      background-repeat: repeat;
+      background: #f4f4f4;
       margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      min-height: 100vh;
-    }
-
-    .app {
-      margin-top: 40px;
-      background: #fff;
-      border-radius: 24px;
-      padding: 32px;
-      width: 100%;
-      max-width: 650px;
-      border: 4px solid #000;
-      box-shadow: 6px 6px 0 #000;
+      padding: 20px;
     }
 
     h1 {
-      margin-top: 0;
-      font-size: 2.2rem;
-      color: #d64545;
-      text-shadow: 3px 3px 0 #00000030;
+      font-size: 32px;
+      margin-bottom: 10px;
     }
 
-    .input-row {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-
-    input[type="text"] {
-      flex: 1;
-      padding: 12px 14px;
-      border-radius: 16px;
-      border: 4px solid #000;
-      background: #fff;
-      color: #000;
-      font-size: 1rem;
-    }
-
-    /* Barre de recherche */
-    #searchBar {
-      width: 100%;
-      padding: 12px 14px;
-      border-radius: 16px;
-      border: 4px solid #000;
-      background: #fff;
-      color: #000;
-      font-size: 1rem;
-      margin-bottom: 20px;
+    #user-info {
+      margin-top: 10px;
+      font-size: 18px;
     }
 
     button {
-      border: 4px solid #000;
-      border-radius: 16px;
-      padding: 12px 18px;
+      font-family: inherit;
+      padding: 10px 20px;
+      margin-right: 10px;
+      border: none;
+      border-radius: 8px;
       cursor: pointer;
-      font-weight: 600;
-      background: #ffd966;
-      color: #000;
-      box-shadow: 4px 4px 0 #000;
-      transition: transform 0.1s;
+      background: #6EC3FF;
+      color: black;
+      font-size: 16px;
+      border: 3px solid black;
     }
 
-    button:active {
-      transform: translateY(2px);
-      box-shadow: 2px 2px 0 #000;
-    }
-
-    .lobbies {
-      margin-top: 20px;
-    }
-
-    .lobby {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 14px 16px;
-      border-radius: 18px;
-      background: #fff;
-      border: 4px solid #000;
-      margin-bottom: 12px;
-      box-shadow: 4px 4px 0 #000;
-    }
-
-    .lobby a {
-      color: #3b82f6;
-      text-decoration: none;
-      font-size: 1.1rem;
-    }
-
-    .lobby button {
-      background: #ff6b6b;
-      color: #fff;
-    }
-
-    .empty {
-      font-size: 1rem;
-      color: #444;
-      font-style: italic;
-    }
-
-    .error {
-      color: #d64545;
-      font-size: 1rem;
-      margin-bottom: 6px;
+    button:hover {
+      background: #8ed3ff;
     }
   </style>
 </head>
 
 <body>
-  <div class="app">
-    <h1>Peak Multiplayer Hub</h1>
 
-    <div id="error" class="error" style="display:none;"></div>
+  <h1>Peak Multiplayer Hub</h1>
 
-    <div class="input-row">
-      <input
-        type="text"
-        id="steamLink"
-        placeholder="Colle ici le lien Steam du lobby (steam://joinlobby/...)"
-      />
-      <button id="addLobbyBtn">+ Ajouter</button>
-    </div>
+  <!-- Boutons Auth -->
+  <button onclick="login()">Se connecter avec Google</button>
+  <button onclick="logout()">Se déconnecter</button>
 
-    <!-- 🔍 Barre de recherche -->
-    <input
-      type="text"
-      id="searchBar"
-      placeholder="Rechercher un lobby..."
-    />
+  <!-- Affichage utilisateur -->
+  <div id="user-info">Non connecté</div>
 
-    <div class="lobbies" id="lobbiesContainer"></div>
-  </div>
+  <hr>
 
-  <script>
-    const STORAGE_KEY = 'peak_lobbies';
+  <!-- Ici tu ajouteras ton interface de lobbys -->
+  <p>Interface des lobbys à venir…</p>
 
-    const steamInput = document.getElementById('steamLink');
-    const addBtn = document.getElementById('addLobbyBtn');
-    const container = document.getElementById('lobbiesContainer');
-    const errorBox = document.getElementById('error');
-    const searchBar = document.getElementById('searchBar');
+  <!-- Firebase Auth -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { 
+      getAuth, 
+      GoogleAuthProvider, 
+      signInWithPopup, 
+      signOut, 
+      onAuthStateChanged 
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-    function loadLobbies() {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return [];
-      try {
-        return JSON.parse(raw);
-      } catch {
-        return [];
+    // 🔥 Configuration Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyDb0hPFAQ2X-czfL71R3tJMU3cue84koTE",
+      authDomain: "peak-hub-803e8.firebaseapp.com",
+      projectId: "peak-hub-803e8",
+      storageBucket: "peak-hub-803e8.firebasestorage.app",
+      messagingSenderId: "660080957005",
+      appId: "1:660080957005:web:57e94fde72d949ee69ee04",
+      measurementId: "G-DH9YF0MZSW"
+    };
+
+    // Initialisation Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+
+    // 🔐 Fonctions de connexion / déconnexion
+    window.login = () => signInWithPopup(auth, provider);
+    window.logout = () => signOut(auth);
+
+    // 👤 Suivi de l'état de connexion
+    onAuthStateChanged(auth, user => {
+      const info = document.getElementById("user-info");
+      if (user) {
+        info.textContent = `Connecté en tant que ${user.displayName}`;
+        window.currentUser = user;
+      } else {
+        info.textContent = "Non connecté";
+        window.currentUser = null;
       }
-    }
-
-    function saveLobbies(lobbies) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(lobbies));
-    }
-
-    function renderLobbies() {
-      const lobbies = loadLobbies();
-      const filter = searchBar.value.toLowerCase();
-
-      container.innerHTML = '';
-
-      const filtered = lobbies.filter(l =>
-        l.url.toLowerCase().includes(filter) ||
-        (l.label && l.label.toLowerCase().includes(filter))
-      );
-
-      if (filtered.length === 0) {
-        const empty = document.createElement('div');
-        empty.className = 'empty';
-        empty.textContent = 'Aucun lobby trouvé.';
-        container.appendChild(empty);
-        return;
-      }
-
-      filtered.forEach((lobby, index) => {
-        const row = document.createElement('div');
-        row.className = 'lobby';
-
-        const link = document.createElement('a');
-        link.href = lobby.url;
-        link.textContent = lobby.label || lobby.url;
-        link.target = '_blank';
-
-        const removeBtn = document.createElement('button');
-        removeBtn.textContent = 'Supprimer';
-        removeBtn.addEventListener('click', () => {
-          const updated = loadLobbies().filter((_, i) => i !== index);
-          saveLobbies(updated);
-          renderLobbies();
-        });
-
-        row.appendChild(link);
-        row.appendChild(removeBtn);
-        container.appendChild(row);
-      });
-    }
-
-    function showError(msg) {
-      errorBox.textContent = msg;
-      errorBox.style.display = 'block';
-      setTimeout(() => {
-        errorBox.style.display = 'none';
-      }, 3000);
-    }
-
-    function isValidSteamLink(url) {
-      return url.startsWith('steam://') ||
-             url.includes('store.steampowered.com') ||
-             url.includes('steamcommunity.com');
-    }
-
-    function addLobby() {
-      const value = steamInput.value.trim();
-      if (!value) {
-        showError('Merci de coller un lien Steam.');
-        return;
-      }
-
-      if (!isValidSteamLink(value)) {
-        showError('Ce lien ne ressemble pas à un lien Steam valide.');
-        return;
-      }
-
-      const lobbies = loadLobbies();
-      if (lobbies.some(l => l.url === value)) {
-        showError('Ce lobby est déjà dans la liste.');
-        return;
-      }
-
-      lobbies.push({
-        url: value,
-        label: 'Lobby Peak'
-      });
-
-      saveLobbies(lobbies);
-      steamInput.value = '';
-      renderLobbies();
-    }
-
-    addBtn.addEventListener('click', addLobby);
-    steamInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') addLobby();
     });
-
-    // 🔍 Recherche en temps réel
-    searchBar.addEventListener('input', renderLobbies);
-
-    renderLobbies();
   </script>
+
 </body>
 </html>
