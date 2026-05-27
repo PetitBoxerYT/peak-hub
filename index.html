@@ -65,7 +65,7 @@
   <h1>Peak Multiplayer Hub</h1>
 
   <!-- Affichage utilisateur -->
-  <div id="user-info">Connexion en cours…</div>
+  <div id="user-info">Connexion…</div>
 
   <h2>Lobbys disponibles</h2>
   <div id="lobbies"></div>
@@ -94,18 +94,28 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 
     /* ------------------------------
-       1) ID LOCAL (remplace Firebase Auth)
+       1) ID LOCAL
        ------------------------------ */
     if (!localStorage.getItem("peakUserId")) {
       localStorage.setItem("peakUserId", crypto.randomUUID());
     }
     const localUserId = localStorage.getItem("peakUserId");
 
+    /* ------------------------------
+       2) PSEUDO LOCAL
+       ------------------------------ */
+    if (!localStorage.getItem("peakPseudo")) {
+      const pseudo = prompt("Choisis ton pseudo Peak :");
+      localStorage.setItem("peakPseudo", pseudo || "Joueur");
+    }
+    const localPseudo = localStorage.getItem("peakPseudo");
+
     document.getElementById("user-info").textContent =
-      "Connecté (ID local : " + localUserId.slice(0, 8) + "…)";
+      "Connecté en tant que " + localPseudo +
+      " (ID : " + localUserId.slice(0, 8) + "…)";
 
     /* ------------------------------
-       2) Firebase (Firestore uniquement)
+       3) Firebase (Firestore uniquement)
        ------------------------------ */
     const firebaseConfig = {
       apiKey: "AIzaSyDb0hPFAQ2X-czfL71R3tJMU3cue84koTE",
@@ -124,7 +134,7 @@
     const lobbiesQuery = query(lobbiesRef, orderBy("createdAt", "desc"));
 
     /* ------------------------------
-       3) Ajouter un lobby
+       4) Ajouter un lobby
        ------------------------------ */
     window.addLobby = async (url, label) => {
       if (!url || !label) {
@@ -136,6 +146,7 @@
         url,
         label,
         owner: localUserId,
+        pseudo: localPseudo,
         createdAt: Date.now()
       });
 
@@ -144,7 +155,7 @@
     };
 
     /* ------------------------------
-       4) Supprimer un lobby
+       5) Supprimer un lobby
        ------------------------------ */
     window.deleteLobby = async (id, owner) => {
       if (localUserId !== owner) {
@@ -155,7 +166,7 @@
     };
 
     /* ------------------------------
-       5) Affichage en temps réel
+       6) Affichage en temps réel
        ------------------------------ */
     onSnapshot(lobbiesQuery, snapshot => {
       const container = document.getElementById("lobbies");
@@ -168,11 +179,11 @@
         const isOwner = localUserId === data.owner;
 
         div.innerHTML = `
-          <p><strong>${data.label}</strong></p>
+          <p><strong>${data.label}</strong> <small>(${data.pseudo})</small></p>
           <p class="lobby-url">${data.url}</p>
           ${isOwner
             ? `<button onclick="deleteLobby('${docu.id}', '${data.owner}')">Supprimer mon lobby</button>`
-            : `<small>Créé par un autre joueur</small>`}
+            : `<small>Créé par ${data.pseudo}</small>`}
         `;
 
         container.appendChild(div);
