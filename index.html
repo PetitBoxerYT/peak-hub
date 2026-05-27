@@ -5,10 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Peak Multiplayer Hub</title>
 
-  <!-- Favicon Peak (optionnel) -->
   <link rel="icon" type="image/png" href="favicon.png">
-
-  <!-- Police Peak style -->
   <link href="https://fonts.googleapis.com/css2?family=Darumadrop+One&display=swap" rel="stylesheet">
 
   <style>
@@ -19,19 +16,10 @@
       padding: 20px;
     }
 
-    h1 {
-      font-size: 32px;
-      margin-bottom: 10px;
-    }
+    h1 { font-size: 32px; margin-bottom: 10px; }
+    h2, h3 { margin-top: 30px; }
 
-    h2, h3 {
-      margin-top: 30px;
-    }
-
-    #user-info {
-      margin-top: 10px;
-      font-size: 18px;
-    }
+    #user-info { margin-top: 10px; font-size: 18px; }
 
     button {
       font-family: inherit;
@@ -45,9 +33,7 @@
       border: 3px solid black;
     }
 
-    button:hover {
-      background: #8ed3ff;
-    }
+    button:hover { background: #8ed3ff; }
 
     input {
       font-family: inherit;
@@ -78,10 +64,8 @@
 
   <h1>Peak Multiplayer Hub</h1>
 
-  <!-- Auth -->
-  <button onclick="login()">Se connecter avec Google</button>
-  <button onclick="logout()">Se déconnecter</button>
-  <div id="user-info">Non connecté</div>
+  <!-- Affichage utilisateur -->
+  <div id="user-info">Connexion en cours…</div>
 
   <h2>Lobbys disponibles</h2>
   <div id="lobbies"></div>
@@ -94,48 +78,7 @@
     document.getElementById('lobby-label').value
   )">Ajouter</button>
 
-  <!-- Firebase Auth -->
-  <script src="/peak-hub/__/firebase/init.js"></script>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import {
-      getAuth,
-      GoogleAuthProvider,
-      signInWithPopup,
-      signOut,
-      onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyDb0hPFAQ2X-czfL71R3tJMU3cue84koTE",
-      authDomain: "peak-hub-803e8.firebaseapp.com",
-      projectId: "peak-hub-803e8",
-      storageBucket: "peak-hub-803e8.firebasestorage.app",
-      messagingSenderId: "660080957005",
-      appId: "1:660080957005:web:57e94fde72d949ee69ee04",
-      measurementId: "G-DH9YF0MZSW"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
-
-    window.login = () => signInWithPopup(auth, provider);
-    window.logout = () => signOut(auth);
-
-    onAuthStateChanged(auth, user => {
-      const info = document.getElementById("user-info");
-      if (user) {
-        info.textContent = `Connecté en tant que ${user.displayName}`;
-        window.currentUser = user;
-      } else {
-        info.textContent = "Non connecté";
-        window.currentUser = null;
-      }
-    });
-  </script>
-
-  <!-- Firestore (lobbys) -->
+  <!-- Firestore -->
   <script type="module">
     import {
       getFirestore,
@@ -147,19 +90,43 @@
       query,
       orderBy
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-    import { getApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 
-    const app = getApp();
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+
+    /* ------------------------------
+       1) ID LOCAL (remplace Firebase Auth)
+       ------------------------------ */
+    if (!localStorage.getItem("peakUserId")) {
+      localStorage.setItem("peakUserId", crypto.randomUUID());
+    }
+    const localUserId = localStorage.getItem("peakUserId");
+
+    document.getElementById("user-info").textContent =
+      "Connecté (ID local : " + localUserId.slice(0, 8) + "…)";
+
+    /* ------------------------------
+       2) Firebase (Firestore uniquement)
+       ------------------------------ */
+    const firebaseConfig = {
+      apiKey: "AIzaSyDb0hPFAQ2X-czfL71R3tJMU3cue84koTE",
+      authDomain: "peak-hub-803e8.firebaseapp.com",
+      projectId: "peak-hub-803e8",
+      storageBucket: "peak-hub-803e8.firebasestorage.app",
+      messagingSenderId: "660080957005",
+      appId: "1:660080957005:web:57e94fde72d949ee69ee04",
+      measurementId: "G-DH9YF0MZSW"
+    };
+
+    const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
     const lobbiesRef = collection(db, "lobbies");
     const lobbiesQuery = query(lobbiesRef, orderBy("createdAt", "desc"));
 
+    /* ------------------------------
+       3) Ajouter un lobby
+       ------------------------------ */
     window.addLobby = async (url, label) => {
-      if (!window.currentUser) {
-        alert("Tu dois être connecté pour créer un lobby");
-        return;
-      }
       if (!url || !label) {
         alert("Merci de remplir l’URL et le nom du lobby");
         return;
@@ -168,7 +135,7 @@
       await addDoc(lobbiesRef, {
         url,
         label,
-        owner: window.currentUser.uid,
+        owner: localUserId,
         createdAt: Date.now()
       });
 
@@ -176,14 +143,20 @@
       document.getElementById("lobby-label").value = "";
     };
 
+    /* ------------------------------
+       4) Supprimer un lobby
+       ------------------------------ */
     window.deleteLobby = async (id, owner) => {
-      if (!window.currentUser || window.currentUser.uid !== owner) {
+      if (localUserId !== owner) {
         alert("Tu ne peux pas supprimer le lobby de quelqu'un d'autre");
         return;
       }
       await deleteDoc(doc(db, "lobbies", id));
     };
 
+    /* ------------------------------
+       5) Affichage en temps réel
+       ------------------------------ */
     onSnapshot(lobbiesQuery, snapshot => {
       const container = document.getElementById("lobbies");
       container.innerHTML = "";
@@ -192,8 +165,7 @@
         const data = docu.data();
         const div = document.createElement("div");
 
-        const isOwner =
-          window.currentUser && window.currentUser.uid === data.owner;
+        const isOwner = localUserId === data.owner;
 
         div.innerHTML = `
           <p><strong>${data.label}</strong></p>
