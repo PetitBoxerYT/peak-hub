@@ -179,12 +179,16 @@
         const isOwner = localUserId === data.owner;
 
         div.innerHTML = `
-          <p><strong>${data.label}</strong> <small>(${data.pseudo})</small></p>
-          <p class="lobby-url">${data.url}</p>
-          ${isOwner
-            ? `<button onclick="deleteLobby('${docu.id}', '${data.owner}')">Supprimer mon lobby</button>`
-            : `<small>Créé par ${data.pseudo}</small>`}
-        `;
+  <p><strong>${data.label}</strong> <small>(${data.pseudo})</small></p>
+  <p class="lobby-url">${data.url}</p>
+
+  <button onclick="window.location.href='${data.url}'">Rejoindre</button>
+
+  ${isOwner
+    ? `<button onclick="deleteLobby('${docu.id}', '${data.owner}')">Supprimer mon lobby</button>`
+    : `<small>Créé par ${data.pseudo}</small>`}
+`;
+
 
         container.appendChild(div);
       });
