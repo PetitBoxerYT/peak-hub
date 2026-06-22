@@ -66,6 +66,7 @@
 
   <!-- Affichage utilisateur -->
   <div id="user-info">Connexion…</div>
+  <button onclick="changePseudo()">Changer de pseudo</button>
 
   <h2>Lobbys disponibles</h2>
   <div id="lobbies"></div>
@@ -113,6 +114,22 @@
     document.getElementById("user-info").textContent =
       "Connecté en tant que " + localPseudo +
       " (ID : " + localUserId.slice(0, 8) + "…)";
+/* ------------------------------
+   Changer de pseudo
+   ------------------------------ */
+window.changePseudo = () => {
+  const nouveau = prompt("Nouveau pseudo :");
+  if (!nouveau) return;
+
+  localStorage.setItem("peakPseudo", nouveau);
+
+  // Met à jour l'affichage
+  document.getElementById("user-info").textContent =
+    "Connecté en tant que " + nouveau +
+    " (ID : " + localUserId.slice(0, 8) + "…)";
+
+  alert("Pseudo mis à jour !");
+};
 
     /* ------------------------------
        3) Firebase (Firestore uniquement)
