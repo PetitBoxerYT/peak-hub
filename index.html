@@ -11,12 +11,12 @@
   <style>
     body {
       font-family: "Darumadrop One", system-ui, sans-serif;
-      background: #f4f4f4;
+      background: #e8f4ff;
       margin: 0;
       padding: 20px;
     }
 
-    h1 { font-size: 32px; margin-bottom: 10px; }
+    h1 { font-size: 36px; margin-bottom: 10px; }
     h2, h3 { margin-top: 30px; }
 
     #user-info { margin-top: 10px; font-size: 18px; }
@@ -31,9 +31,10 @@
       color: black;
       font-size: 16px;
       border: 3px solid black;
+      transition: 0.15s;
     }
 
-    button:hover { background: #8ed3ff; }
+    button:hover { background: #8ed3ff; transform: translateY(-2px); }
 
     input {
       font-family: inherit;
@@ -46,16 +47,27 @@
 
     #lobbies > div {
       background: white;
-      border-radius: 10px;
+      border-radius: 12px;
       border: 3px solid black;
-      padding: 10px;
-      margin-bottom: 10px;
+      padding: 15px;
+      margin-bottom: 15px;
+      box-shadow: 4px 4px 0px #000;
     }
 
     .lobby-url {
       font-family: monospace;
       font-size: 13px;
       word-break: break-all;
+    }
+
+    .voice-link a {
+      color: #0066cc;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .voice-link a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
@@ -165,11 +177,17 @@
         return;
       }
 
+      // Correction automatique du https://
+      let voiceLink = voice;
+      if (voice && !voice.startsWith("http://") && !voice.startsWith("https://")) {
+        voiceLink = "https://" + voice;
+      }
+
       await addDoc(lobbiesRef, {
         url,
         label,
         desc,
-        voice,
+        voice: voiceLink,
         owner: localUserId,
         pseudo: localPseudo,
         createdAt: Date.now()
@@ -210,7 +228,7 @@
           <p>${data.desc || ""}</p>
 
           ${data.voice
-            ? `<p>Salon vocal : <a href="${data.voice}" target="_blank">${data.voice}</a></p>`
+            ? `<p class="voice-link">Salon vocal : <a href="${data.voice}" target="_blank">${data.voice}</a></p>`
             : ""
           }
 
