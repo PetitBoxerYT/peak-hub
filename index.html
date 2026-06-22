@@ -74,6 +74,9 @@
   <h3>Créer un lobby</h3>
   <input id="lobby-url" placeholder="steam://joinlobby/..." size="40">
   <input id="lobby-label" placeholder="Nom du lobby" size="25">
+  <input id="lobby-desc" placeholder="Description du lobby" size="40">
+  <input id="lobby-voice" placeholder="Lien du salon vocal (optionnel)" size="40">
+
   <button onclick="addLobby(
     document.getElementById('lobby-url').value,
     document.getElementById('lobby-label').value
@@ -114,25 +117,25 @@
     document.getElementById("user-info").textContent =
       "Connecté en tant que " + localPseudo +
       " (ID : " + localUserId.slice(0, 8) + "…)";
-/* ------------------------------
-   Changer de pseudo
-   ------------------------------ */
-window.changePseudo = () => {
-  const nouveau = prompt("Nouveau pseudo :");
-  if (!nouveau) return;
-
-  localStorage.setItem("peakPseudo", nouveau);
-
-  // Met à jour l'affichage
-  document.getElementById("user-info").textContent =
-    "Connecté en tant que " + nouveau +
-    " (ID : " + localUserId.slice(0, 8) + "…)";
-
-  alert("Pseudo mis à jour !");
-};
 
     /* ------------------------------
-       3) Firebase (Firestore uniquement)
+       3) Changer de pseudo
+       ------------------------------ */
+    window.changePseudo = () => {
+      const nouveau = prompt("Nouveau pseudo :");
+      if (!nouveau) return;
+
+      localStorage.setItem("peakPseudo", nouveau);
+
+      document.getElementById("user-info").textContent =
+        "Connecté en tant que " + nouveau +
+        " (ID : " + localUserId.slice(0, 8) + "…)";
+
+      alert("Pseudo mis à jour !");
+    };
+
+    /* ------------------------------
+       4) Firebase (Firestore uniquement)
        ------------------------------ */
     const firebaseConfig = {
       apiKey: "AIzaSyDb0hPFAQ2X-czfL71R3tJMU3cue84koTE",
@@ -151,9 +154,12 @@ window.changePseudo = () => {
     const lobbiesQuery = query(lobbiesRef, orderBy("createdAt", "desc"));
 
     /* ------------------------------
-       4) Ajouter un lobby
+       5) Ajouter un lobby
        ------------------------------ */
     window.addLobby = async (url, label) => {
+      const desc = document.getElementById("lobby-desc").value;
+      const voice = document.getElementById("lobby-voice").value;
+
       if (!url || !label) {
         alert("Merci de remplir l’URL et le nom du lobby");
         return;
@@ -162,6 +168,8 @@ window.changePseudo = () => {
       await addDoc(lobbiesRef, {
         url,
         label,
+        desc,
+        voice,
         owner: localUserId,
         pseudo: localPseudo,
         createdAt: Date.now()
@@ -169,10 +177,12 @@ window.changePseudo = () => {
 
       document.getElementById("lobby-url").value = "";
       document.getElementById("lobby-label").value = "";
+      document.getElementById("lobby-desc").value = "";
+      document.getElementById("lobby-voice").value = "";
     };
 
     /* ------------------------------
-       5) Supprimer un lobby
+       6) Supprimer un lobby
        ------------------------------ */
     window.deleteLobby = async (id, owner) => {
       if (localUserId !== owner) {
@@ -183,7 +193,7 @@ window.changePseudo = () => {
     };
 
     /* ------------------------------
-       6) Affichage en temps réel
+       7) Affichage en temps réel
        ------------------------------ */
     onSnapshot(lobbiesQuery, snapshot => {
       const container = document.getElementById("lobbies");
@@ -196,16 +206,22 @@ window.changePseudo = () => {
         const isOwner = localUserId === data.owner;
 
         div.innerHTML = `
-  <p><strong>${data.label}</strong> <small>(${data.pseudo})</small></p>
-  <p class="lobby-url">${data.url}</p>
+          <p><strong>${data.label}</strong> <small>(${data.pseudo})</small></p>
+          <p>${data.desc || ""}</p>
 
-  <button onclick="window.location.href='${data.url}'">Rejoindre</button>
+          ${data.voice
+            ? `<p>Salon vocal : <a href="${data.voice}" target="_blank">${data.voice}</a></p>`
+            : ""
+          }
 
-  ${isOwner
-    ? `<button onclick="deleteLobby('${docu.id}', '${data.owner}')">Supprimer mon lobby</button>`
-    : `<small>Créé par ${data.pseudo}</small>`}
-`;
+          <p class="lobby-url">${data.url}</p>
 
+          <button onclick="window.open('${data.url}', '_blank')">Rejoindre</button>
+
+          ${isOwner
+            ? `<button onclick="deleteLobby('${docu.id}', '${data.owner}')">Supprimer mon lobby</button>`
+            : `<small>Créé par ${data.pseudo}</small>`}
+        `;
 
         container.appendChild(div);
       });
