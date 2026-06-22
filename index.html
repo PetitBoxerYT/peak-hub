@@ -108,70 +108,63 @@
   )">Ajouter</button>
 
   <!-- Firestore -->
-  <script type="module">
-    import {
-      getFirestore,
-      collection,
-      addDoc,
-      deleteDoc,
-      doc,
-      setDoc,
-      onSnapshot,
-      query,
-      orderBy
-    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+ <script type="module">
+  import {
+    getFirestore,
+    collection,
+    addDoc,
+    deleteDoc,
+    doc,
+    setDoc,
+    onSnapshot,
+    query,
+    orderBy
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 
-    /* ------------------------------
-       1) ID LOCAL
-       ------------------------------ */
-    if (!localStorage.getItem("peakUserId")) {
-      localStorage.setItem("peakUserId", crypto.randomUUID());
-    }
-    const localUserId = localStorage.getItem("peakUserId");
+  // 1) ID LOCAL
+  if (!localStorage.getItem("peakUserId")) {
+    localStorage.setItem("peakUserId", crypto.randomUUID());
+  }
+  const localUserId = localStorage.getItem("peakUserId");
 
-    /* ------------------------------
-       2) PSEUDO LOCAL
-       ------------------------------ */
-    if (!localStorage.getItem("peakPseudo")) {
-      const pseudo = prompt("Choisis ton pseudo Peak :");
-      localStorage.setItem("peakPseudo", pseudo || "Joueur");
-    }
-    const localPseudo = localStorage.getItem("peakPseudo");
+  // 2) PSEUDO LOCAL
+  if (!localStorage.getItem("peakPseudo")) {
+    const pseudo = prompt("Choisis ton pseudo Peak :");
+    localStorage.setItem("peakPseudo", pseudo || "Joueur");
+  }
+  let localPseudo = localStorage.getItem("peakPseudo");
 
-    document.getElementById("user-info").textContent =
-      "Connecté en tant que " + localPseudo +
-      " (ID : " + localUserId.slice(0, 8) + "…)";
+  document.getElementById("user-info").textContent =
+    "Connecté en tant que " + localPseudo +
+    " (ID : " + localUserId.slice(0, 8) + "…)";
 
-    /* ------------------------------
-       3) Firebase
-       ------------------------------ */
-    const firebaseConfig = {
-      apiKey: "AIzaSyDb0hPFAQ2X-czfL71R3tJMU3cue84koTE",
-      authDomain: "peak-hub-803e8.firebaseapp.com",
-      projectId: "peak-hub-803e8",
-      storageBucket: "peak-hub-803e8.firebasestorage.app",
-      messagingSenderId: "660080957005",
-      appId: "1:660080957005:web:57e94fde72d949ee69ee04",
-      measurementId: "G-DH9YF0MZSW"
-    };
+  // 3) Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyDb0hPFAQ2X-czfL71R3tJMU3cue84koTE",
+    authDomain: "peak-hub-803e8.firebaseapp.com",
+    projectId: "peak-hub-803e8",
+    storageBucket: "peak-hub-803e8.firebasestorage.app",
+    messagingSenderId: "660080957005",
+    appId: "1:660080957005:web:57e94fde72d949ee69ee04",
+    measurementId: "G-DH9YF0MZSW"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-    /* ------------------------------
-       4) Système de joueurs connectés
-       ------------------------------ */
-    const onlineRef = doc(db, "onlineUsers", localUserId);
+  let onlineRef = null;
 
-    // Ajout automatique à l'arrivée
+  async function init() {
+    // 4) Système de joueurs connectés
+    onlineRef = doc(db, "onlineUsers", localUserId);
+
     await setDoc(onlineRef, {
       pseudo: localPseudo,
       lastSeen: Date.now()
     });
 
-    // Mise à jour toutes les 30 secondes
     setInterval(() => {
       setDoc(onlineRef, {
         pseudo: localPseudo,
@@ -179,20 +172,18 @@
       });
     }, 30000);
 
-    // Suppression automatique à la fermeture
     window.addEventListener("beforeunload", () => {
-      deleteDoc(onlineRef);
+      if (onlineRef) deleteDoc(onlineRef);
     });
 
-    // Bouton "Je ne joue plus"
     window.leaveHub = async () => {
-      await deleteDoc(onlineRef);
-      alert("Tu as quitté le Hub.");
+      if (onlineRef) {
+        await deleteDoc(onlineRef);
+        alert("Tu as quitté le Hub.");
+      }
     };
 
-    // Affichage en temps réel
     const onlineUsersRef = collection(db, "onlineUsers");
-
     onSnapshot(onlineUsersRef, snapshot => {
       const now = Date.now();
       const list = document.getElementById("online-list");
@@ -202,11 +193,8 @@
 
       snapshot.forEach(docu => {
         const data = docu.data();
-
-        // Filtrer les joueurs inactifs (plus de 60 sec)
         if (now - data.lastSeen < 60000) {
           count++;
-
           const div = document.createElement("div");
           div.textContent = data.pseudo;
           list.appendChild(div);
@@ -216,9 +204,7 @@
       document.getElementById("online-count").textContent = count;
     });
 
-    /* ------------------------------
-       5) Lobbys
-       ------------------------------ */
+    // 5) Lobbys
     const lobbiesRef = collection(db, "lobbies");
     const lobbiesQuery = query(lobbiesRef, orderBy("createdAt", "desc"));
 
@@ -231,7 +217,6 @@
         return;
       }
 
-      // Correction automatique du https://
       let voiceLink = voice;
       if (voice && !voice.startsWith("http://") && !voice.startsWith("https://")) {
         voiceLink = "https://" + voice;
@@ -292,7 +277,25 @@
         container.appendChild(div);
       });
     });
-  </script>
+  }
 
-</body>
+  // Changer de pseudo (doit être global)
+  window.changePseudo = () => {
+    const nouveau = prompt("Nouveau pseudo :");
+    if (!nouveau) return;
+
+    localStorage.setItem("peakPseudo", nouveau);
+    localPseudo = nouveau;
+
+    document.getElementById("user-info").textContent =
+      "Connecté en tant que " + nouveau +
+      " (ID : " + localUserId.slice(0, 8) + "…)";
+
+    alert("Pseudo mis à jour !");
+  };
+
+  // Lancer l'init
+  init();
+</script>
+
 </html>
