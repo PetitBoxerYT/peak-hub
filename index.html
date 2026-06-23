@@ -5,406 +5,59 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Peak Multiplayer Hub</title>
 
-  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Darumadrop+One&display=swap" rel="stylesheet">
-
-  <style>
-    body {
-      font-family: "Darumadrop One", system-ui, sans-serif;
-      background: #e8f4ff;
-      margin: 0;
-      padding: 20px;
-    }
-
-    h1 { font-size: 36px; margin-bottom: 10px; }
-    h2, h3 { margin-top: 30px; }
-
-    #user-info { margin-top: 10px; font-size: 18px; }
-
-    button {
-      font-family: inherit;
-      padding: 10px 20px;
-      margin: 5px 10px 5px 0;
-      border-radius: 8px;
-      cursor: pointer;
-      background: #6EC3FF;
-      color: black;
-      font-size: 16px;
-      border: 3px solid black;
-      transition: 0.15s;
-    }
-
-    button:hover { background: #8ed3ff; transform: translateY(-2px); }
-
-    input {
-      font-family: inherit;
-      padding: 8px 10px;
-      margin: 5px 10px 5px 0;
-      border-radius: 6px;
-      border: 2px solid #000;
-      font-size: 14px;
-    }
-
-    #lobbies > div {
-      background: white;
-      border-radius: 12px;
-      border: 3px solid black;
-      padding: 15px;
-      margin-bottom: 15px;
-      box-shadow: 4px 4px 0px #000;
-    }
-
-    .lobby-url {
-      font-family: monospace;
-      font-size: 13px;
-      word-break: break-all;
-    }
-
-    .voice-link a {
-      color: #0066cc;
-      text-decoration: none;
-      font-weight: bold;
-    }
-
-    .voice-link a:hover {
-      text-decoration: underline;
-    }
-
-    #online-list div {
-      background: #fff;
-      border: 2px solid #000;
-      padding: 5px 10px;
-      margin: 5px 0;
-      border-radius: 6px;
-      display: inline-block;
-    }
-  </style>
 </head>
 
 <body>
 
-  <h1>Peak Multiplayer Hub</h1>
+  <header>
+    <h1>Peak Multiplayer Hub</h1>
 
-  <!-- Affichage utilisateur -->
-  <div id="user-info">Connexion…</div>
-  <button onclick="changePseudo()">Changer de pseudo</button>
-  <button onclick="leaveHub()">Je ne joue plus</button>
+    <div class="theme-menu">
+      <button id="themeButton">🎨 Thèmes</button>
+      <div id="themeDropdown" class="dropdown hidden">
+        <div onclick="setTheme('light')">🌞 Thème clair</div>
+        <div onclick="setTheme('glass')">🟣 Peak Glass Violet</div>
+      </div>
+    </div>
+  </header>
 
-  <h2>Joueurs connectés : <span id="online-count">0</span></h2>
-  <div id="online-list"></div>
+  <main>
 
-  <h2>Lobbys disponibles</h2>
-  <div id="lobbies"></div>
+    <section class="user-card glass">
+      <div id="user-info">Connexion…</div>
+      <button onclick="changePseudo()">Changer de pseudo</button>
+      <button onclick="leaveHub()" class="danger">Je ne joue plus</button>
+    </section>
 
-  <h3>Créer un lobby</h3>
-  <input id="lobby-url" placeholder="steam://joinlobby/..." size="40">
-  <input id="lobby-label" placeholder="Nom du lobby" size="25">
-  <input id="lobby-desc" placeholder="Description du lobby" size="40">
-  <input id="lobby-voice" placeholder="Lien du salon vocal (optionnel)" size="40">
+    <section class="glass">
+      <h2>Joueurs connectés : <span id="online-count">0</span></h2>
+      <div id="online-list" class="pill-list"></div>
+    </section>
 
-  <button onclick="addLobby(
-    document.getElementById('lobby-url').value,
-    document.getElementById('lobby-label').value
-  )">Ajouter</button>
+    <section class="glass">
+      <h2>Lobbys disponibles</h2>
+      <div id="lobbies"></div>
+    </section>
 
-  <!-- Firestore -->
-  <script type="module">
-    import {
-      getFirestore,
-      collection,
-      addDoc,
-      deleteDoc,
-      doc,
-      setDoc,
-      onSnapshot,
-      query,
-      orderBy
-    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    <section class="glass">
+      <h3>Créer un lobby</h3>
 
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+      <input id="lobby-url" placeholder="steam://joinlobby/..." size="40">
+      <input id="lobby-label" placeholder="Nom du lobby" size="25">
+      <input id="lobby-desc" placeholder="Description du lobby" size="40">
+      <input id="lobby-voice" placeholder="Lien du salon vocal (optionnel)" size="40">
 
-    /* ------------------------------
-       1) ID LOCAL
-       ------------------------------ */
-    if (!localStorage.getItem("peakUserId")) {
-      localStorage.setItem("peakUserId", crypto.randomUUID());
-    }
-    const localUserId = localStorage.getItem("peakUserId");
+      <button onclick="addLobby(
+        document.getElementById('lobby-url').value,
+        document.getElementById('lobby-label').value
+      )">Ajouter</button>
+    </section>
 
-    /* ------------------------------
-       2) PSEUDO LOCAL
-       ------------------------------ */
-    if (!localStorage.getItem("peakPseudo")) {
-      const pseudo = prompt("Choisis ton pseudo Peak :");
-      localStorage.setItem("peakPseudo", pseudo || "Joueur");
-    }
-    let localPseudo = localStorage.getItem("peakPseudo");
+  </main>
 
-    /* ------------------------------
-       3) Ne pas réactiver automatiquement
-       ------------------------------ */
-    // On NE supprime PAS hasQuitHub ici.
-    // L'utilisateur reste invisible tant qu'il ne fait pas une action volontaire.
-
-    document.getElementById("user-info").textContent =
-      "Connecté en tant que " + localPseudo +
-      " (ID : " + localUserId.slice(0, 8) + "…)";
-
-    /* ------------------------------
-       4) Firebase
-       ------------------------------ */
-    const firebaseConfig = {
-      apiKey: "AIzaSyDb0hPFAQ2X-czfL71R3tJMU3cue84koTE",
-      authDomain: "peak-hub-803e8.firebaseapp.com",
-      projectId: "peak-hub-803e8",
-      storageBucket: "peak-hub-803e8.firebasestorage.app",
-      messagingSenderId: "660080957005",
-      appId: "1:660080957005:web:57e94fde72d949ee69ee04",
-      measurementId: "G-DH9YF0MZSW"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    /* ------------------------------
-       5) Lobbys
-       ------------------------------ */
-    const lobbiesRef = collection(db, "lobbies");
-    const lobbiesQuery = query(lobbiesRef, orderBy("createdAt", "desc"));
-
-    let currentLobbyId = localStorage.getItem("currentLobbyId") || null;
-
-    window.addLobby = async (url, label) => {
-      const desc = document.getElementById("lobby-desc").value;
-      const voice = document.getElementById("lobby-voice").value;
-
-      if (!url || !label) {
-        alert("Merci de remplir l’URL et le nom du lobby");
-        return;
-      }
-
-      let voiceLink = voice;
-      if (voice && !voice.startsWith("http://") && !voice.startsWith("https://")) {
-        voiceLink = "https://" + voice;
-      }
-
-      try {
-        await addDoc(lobbiesRef, {
-          url,
-          label,
-          desc,
-          voice: voiceLink,
-          owner: localUserId,
-          pseudo: localPseudo,
-          createdAt: Date.now()
-        });
-      } catch (e) {
-        console.error("Erreur addLobby:", e);
-        alert("Impossible d’ajouter le lobby (permissions Firestore ?)");
-        return;
-      }
-
-      document.getElementById("lobby-url").value = "";
-      document.getElementById("lobby-label").value = "";
-      document.getElementById("lobby-desc").value = "";
-      document.getElementById("lobby-voice").value = "";
-    };
-
-    window.deleteLobby = async (id, owner) => {
-      if (localUserId !== owner) {
-        alert("Tu ne peux pas supprimer le lobby de quelqu'un d'autre");
-        return;
-      }
-      try {
-        await deleteDoc(doc(db, "lobbies", id));
-      } catch (e) {
-        console.error("Erreur deleteLobby:", e);
-        alert("Impossible de supprimer le lobby (permissions Firestore ?)");
-      }
-    };
-
-    /* ------------------------------
-       6) Rejoindre un lobby = entrer + ouvrir Steam
-       ------------------------------ */
-    window.joinLobby = async (lobbyId, url) => {
-      try {
-        // Reconnexion volontaire → réactiver la présence
-        localStorage.removeItem("hasQuitHub");
-        startPresence();
-
-        // Quitter l’ancien lobby
-        if (currentLobbyId && currentLobbyId !== lobbyId) {
-          const oldPlayerRef = doc(db, "lobbies", currentLobbyId, "players", localUserId);
-          await deleteDoc(oldPlayerRef).catch(() => {});
-        }
-
-        // Entrer dans le nouveau lobby
-        const playerRef = doc(db, "lobbies", lobbyId, "players", localUserId);
-        await setDoc(playerRef, {
-          pseudo: localPseudo,
-          lastSeen: Date.now()
-        });
-
-        currentLobbyId = lobbyId;
-        localStorage.setItem("currentLobbyId", lobbyId);
-
-        window.open(url, "_blank");
-      } catch (e) {
-        console.error("Erreur joinLobby:", e);
-        alert("Impossible de rejoindre le lobby (permissions Firestore ?)");
-      }
-    };
-
-    /* ------------------------------
-       7) Affichage des lobbys + compteur par lobby
-       ------------------------------ */
-    onSnapshot(lobbiesQuery, snapshot => {
-      const container = document.getElementById("lobbies");
-      container.innerHTML = "";
-
-      snapshot.forEach(docu => {
-        const data = docu.data();
-        const lobbyId = docu.id;
-        const isOwner = localUserId === data.owner;
-
-        const div = document.createElement("div");
-
-        div.innerHTML = `
-          <p><strong>${data.label}</strong> <small>(${data.pseudo})</small></p>
-          <p>${data.desc || ""}</p>
-
-          ${data.voice
-            ? `<p class="voice-link">Salon vocal : <a href="${data.voice}" target="_blank">${data.voice}</a></p>`
-            : ""
-          }
-
-          <p><span id="players-${lobbyId}">0</span> joueur(s) dans ce lobby</p>
-
-          <p class="lobby-url">${data.url}</p>
-
-          <button onclick="joinLobby('${lobbyId}', '${data.url}')">Rejoindre</button>
-
-          ${isOwner
-            ? `<button onclick="deleteLobby('${lobbyId}', '${data.owner}')">Supprimer mon lobby</button>`
-            : `<small>Créé par ${data.pseudo}</small>`}
-        `;
-
-        container.appendChild(div);
-
-        // Compteur par lobby
-        const playersRef = collection(db, "lobbies", lobbyId, "players");
-        onSnapshot(playersRef, snap => {
-          const span = document.getElementById(`players-${lobbyId}`);
-          if (span) span.textContent = snap.size;
-        });
-      });
-    });
-
-    /* ------------------------------
-       8) Changer de pseudo = action volontaire
-       ------------------------------ */
-    window.changePseudo = () => {
-      const nouveau = prompt("Nouveau pseudo :");
-      if (!nouveau) return;
-
-      localStorage.setItem("peakPseudo", nouveau);
-      localPseudo = nouveau;
-
-      // Reconnexion volontaire
-      localStorage.removeItem("hasQuitHub");
-      startPresence();
-
-      document.getElementById("user-info").textContent =
-        "Connecté en tant que " + nouveau +
-        " (ID : " + localUserId.slice(0, 8) + "…)";
-
-      alert("Pseudo mis à jour !");
-    };
-
-    /* ------------------------------
-       9) Présence globale (onlineUsers)
-       ------------------------------ */
-    const onlineUsersRef = collection(db, "onlineUsers");
-    const onlineRef = doc(db, "onlineUsers", localUserId);
-
-    let presenceInterval = null;
-
-    function startPresence() {
-      // Si déjà actif → ne pas recréer
-      if (presenceInterval !== null) return;
-
-      // Créer la présence immédiatement
-      setDoc(onlineRef, {
-        pseudo: localPseudo,
-        lastSeen: Date.now()
-      }).catch(() => {});
-
-      // Mettre à jour toutes les 30 secondes
-      presenceInterval = setInterval(() => {
-        if (localStorage.getItem("hasQuitHub") === "true") return;
-        setDoc(onlineRef, {
-          pseudo: localPseudo,
-          lastSeen: Date.now()
-        }).catch(() => {});
-      }, 30000);
-    }
-
-    function stopPresence() {
-      if (presenceInterval !== null) {
-        clearInterval(presenceInterval);
-        presenceInterval = null;
-      }
-    }
-
-    // Démarrer la présence seulement si l'utilisateur n'a pas quitté
-    if (localStorage.getItem("hasQuitHub") !== "true") {
-      startPresence();
-    }
-
-    window.leaveHub = async () => {
-      try {
-        localStorage.setItem("hasQuitHub", "true");
-
-        stopPresence();
-
-        if (currentLobbyId) {
-          const playerRef = doc(db, "lobbies", currentLobbyId, "players", localUserId);
-          await deleteDoc(playerRef).catch(() => {});
-          currentLobbyId = null;
-          localStorage.removeItem("currentLobbyId");
-        }
-
-        await deleteDoc(onlineRef).catch(() => {});
-        alert("Tu as quitté le Hub.");
-      } catch (e) {
-        console.error("Erreur leaveHub:", e);
-      }
-    };
-
-    /* ------------------------------
-       10) Affichage du compteur global
-       ------------------------------ */
-    onSnapshot(onlineUsersRef, snapshot => {
-      const now = Date.now();
-      const list = document.getElementById("online-list");
-      list.innerHTML = "";
-
-      let count = 0;
-
-      snapshot.forEach(docu => {
-        const data = docu.data();
-        if (now - data.lastSeen < 60000) {
-          count++;
-          const div = document.createElement("div");
-          div.textContent = data.pseudo;
-          list.appendChild(div);
-        }
-      });
-
-      document.getElementById("online-count").textContent = count;
-    });
-
-  </script>
+  <script src="script.js" type="module"></script>
 
 </body>
 </html>
