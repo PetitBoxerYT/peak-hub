@@ -123,24 +123,36 @@
 
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 
-    // 1) ID LOCAL
+    /* ------------------------------
+       1) ID LOCAL
+       ------------------------------ */
     if (!localStorage.getItem("peakUserId")) {
       localStorage.setItem("peakUserId", crypto.randomUUID());
     }
     const localUserId = localStorage.getItem("peakUserId");
 
-    // 2) PSEUDO LOCAL
+    /* ------------------------------
+       2) PSEUDO LOCAL
+       ------------------------------ */
     if (!localStorage.getItem("peakPseudo")) {
       const pseudo = prompt("Choisis ton pseudo Peak :");
       localStorage.setItem("peakPseudo", pseudo || "Joueur");
     }
     let localPseudo = localStorage.getItem("peakPseudo");
 
+    /* ------------------------------
+       3) Ne pas réactiver automatiquement
+       ------------------------------ */
+    // On NE supprime PAS hasQuitHub ici.
+    // L'utilisateur reste invisible tant qu'il ne fait pas une action volontaire.
+
     document.getElementById("user-info").textContent =
       "Connecté en tant que " + localPseudo +
       " (ID : " + localUserId.slice(0, 8) + "…)";
 
-    // 3) Firebase
+    /* ------------------------------
+       4) Firebase
+       ------------------------------ */
     const firebaseConfig = {
       apiKey: "AIzaSyDb0hPFAQ2X-czfL71R3tJMU3cue84koTE",
       authDomain: "peak-hub-803e8.firebaseapp.com",
@@ -154,7 +166,9 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // 4) Lobbys
+    /* ------------------------------
+       5) Lobbys
+       ------------------------------ */
     const lobbiesRef = collection(db, "lobbies");
     const lobbiesQuery = query(lobbiesRef, orderBy("createdAt", "desc"));
 
@@ -209,15 +223,22 @@
       }
     };
 
-    // Rejoindre = entrer dans le lobby + ouvrir le lien
+    /* ------------------------------
+       6) Rejoindre un lobby = entrer + ouvrir Steam
+       ------------------------------ */
     window.joinLobby = async (lobbyId, url) => {
       try {
-        // Quitter l’ancien lobby si besoin
+        // Reconnexion volontaire → réactiver la présence
+        localStorage.removeItem("hasQuitHub");
+        startPresence();
+
+        // Quitter l’ancien lobby
         if (currentLobbyId && currentLobbyId !== lobbyId) {
           const oldPlayerRef = doc(db, "lobbies", currentLobbyId, "players", localUserId);
           await deleteDoc(oldPlayerRef).catch(() => {});
         }
 
+        // Entrer dans le nouveau lobby
         const playerRef = doc(db, "lobbies", lobbyId, "players", localUserId);
         await setDoc(playerRef, {
           pseudo: localPseudo,
@@ -234,16 +255,19 @@
       }
     };
 
+    /* ------------------------------
+       7) Affichage des lobbys + compteur par lobby
+       ------------------------------ */
     onSnapshot(lobbiesQuery, snapshot => {
       const container = document.getElementById("lobbies");
       container.innerHTML = "";
 
       snapshot.forEach(docu => {
         const data = docu.data();
-        const div = document.createElement("div");
-
-        const isOwner = localUserId === data.owner;
         const lobbyId = docu.id;
+        const isOwner = localUserId === data.owner;
+
+        const div = document.createElement("div");
 
         div.innerHTML = `
           <p><strong>${data.label}</strong> <small>(${data.pseudo})</small></p>
@@ -270,21 +294,25 @@
         // Compteur par lobby
         const playersRef = collection(db, "lobbies", lobbyId, "players");
         onSnapshot(playersRef, snap => {
-          const count = snap.size;
           const span = document.getElementById(`players-${lobbyId}`);
-          if (span) span.textContent = count;
+          if (span) span.textContent = snap.size;
         });
       });
     });
 
-    // 5) Changer de pseudo
+    /* ------------------------------
+       8) Changer de pseudo = action volontaire
+       ------------------------------ */
     window.changePseudo = () => {
       const nouveau = prompt("Nouveau pseudo :");
       if (!nouveau) return;
-localStorage.removeItem("hasQuitHub");
 
       localStorage.setItem("peakPseudo", nouveau);
       localPseudo = nouveau;
+
+      // Reconnexion volontaire
+      localStorage.removeItem("hasQuitHub");
+      startPresence();
 
       document.getElementById("user-info").textContent =
         "Connecté en tant que " + nouveau +
@@ -293,77 +321,89 @@ localStorage.removeItem("hasQuitHub");
       alert("Pseudo mis à jour !");
     };
 
-    // 6) Présence globale (onlineUsers)
+    /* ------------------------------
+       9) Présence globale (onlineUsers)
+       ------------------------------ */
     const onlineUsersRef = collection(db, "onlineUsers");
     const onlineRef = doc(db, "onlineUsers", localUserId);
 
-    window.leaveHub = async () => {
-  try {
-    localStorage.setItem("hasQuitHub", "true");
+    let presenceInterval = null;
 
-    if (currentLobbyId) {
-      const playerRef = doc(db, "lobbies", currentLobbyId, "players", localUserId);
-      await deleteDoc(playerRef).catch(() => {});
-      currentLobbyId = null;
-      localStorage.removeItem("currentLobbyId");
+    function startPresence() {
+      // Si déjà actif → ne pas recréer
+      if (presenceInterval !== null) return;
+
+      // Créer la présence immédiatement
+      setDoc(onlineRef, {
+        pseudo: localPseudo,
+        lastSeen: Date.now()
+      }).catch(() => {});
+
+      // Mettre à jour toutes les 30 secondes
+      presenceInterval = setInterval(() => {
+        if (localStorage.getItem("hasQuitHub") === "true") return;
+        setDoc(onlineRef, {
+          pseudo: localPseudo,
+          lastSeen: Date.now()
+        }).catch(() => {});
+      }, 30000);
     }
 
-    await deleteDoc(onlineRef).catch(() => {});
-    alert("Tu as quitté le Hub.");
-  } catch (e) {
-    console.error("Erreur leaveHub:", e);
-  }
-};
-
-
-    (async () => {
-      try {
-        if (localStorage.getItem("hasQuitHub") !== "true") {
-  await setDoc(onlineRef, {
-    pseudo: localPseudo,
-    lastSeen: Date.now()
-  });
-}
-
-        setInterval(() => {
-          setDoc(onlineRef, {
-            pseudo: localPseudo,
-            lastSeen: Date.now()
-          }).catch(e => console.error("Erreur update presence:", e));
-        }, 30000);
-
-        window.addEventListener("beforeunload", () => {
-          // quitter lobby + présence globale
-          if (currentLobbyId) {
-            const playerRef = doc(db, "lobbies", currentLobbyId, "players", localUserId);
-            deleteDoc(playerRef).catch(() => {});
-          }
-          deleteDoc(onlineRef).catch(() => {});
-        });
-
-        onSnapshot(onlineUsersRef, snapshot => {
-          const now = Date.now();
-          const list = document.getElementById("online-list");
-          list.innerHTML = "";
-
-          let count = 0;
-
-          snapshot.forEach(docu => {
-            const data = docu.data();
-            if (now - data.lastSeen < 60000) {
-              count++;
-              const div = document.createElement("div");
-              div.textContent = data.pseudo;
-              list.appendChild(div);
-            }
-          });
-
-          document.getElementById("online-count").textContent = count;
-        });
-      } catch (e) {
-        console.error("Erreur présence (onlineUsers):", e);
+    function stopPresence() {
+      if (presenceInterval !== null) {
+        clearInterval(presenceInterval);
+        presenceInterval = null;
       }
-    })();
+    }
+
+    // Démarrer la présence seulement si l'utilisateur n'a pas quitté
+    if (localStorage.getItem("hasQuitHub") !== "true") {
+      startPresence();
+    }
+
+    window.leaveHub = async () => {
+      try {
+        localStorage.setItem("hasQuitHub", "true");
+
+        stopPresence();
+
+        if (currentLobbyId) {
+          const playerRef = doc(db, "lobbies", currentLobbyId, "players", localUserId);
+          await deleteDoc(playerRef).catch(() => {});
+          currentLobbyId = null;
+          localStorage.removeItem("currentLobbyId");
+        }
+
+        await deleteDoc(onlineRef).catch(() => {});
+        alert("Tu as quitté le Hub.");
+      } catch (e) {
+        console.error("Erreur leaveHub:", e);
+      }
+    };
+
+    /* ------------------------------
+       10) Affichage du compteur global
+       ------------------------------ */
+    onSnapshot(onlineUsersRef, snapshot => {
+      const now = Date.now();
+      const list = document.getElementById("online-list");
+      list.innerHTML = "";
+
+      let count = 0;
+
+      snapshot.forEach(docu => {
+        const data = docu.data();
+        if (now - data.lastSeen < 60000) {
+          count++;
+          const div = document.createElement("div");
+          div.textContent = data.pseudo;
+          list.appendChild(div);
+        }
+      });
+
+      document.getElementById("online-count").textContent = count;
+    });
+
   </script>
 
 </body>
