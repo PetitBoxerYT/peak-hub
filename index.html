@@ -317,10 +317,12 @@
 
     (async () => {
       try {
-        await setDoc(onlineRef, {
-          pseudo: localPseudo,
-          lastSeen: Date.now()
-        });
+        if (localStorage.getItem("hasQuitHub") !== "true") {
+  await setDoc(onlineRef, {
+    pseudo: localPseudo,
+    lastSeen: Date.now()
+  });
+}
 
         setInterval(() => {
           setDoc(onlineRef, {
