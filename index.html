@@ -109,57 +109,166 @@
 
   <!-- Firestore -->
   <script type="module">
-    import {
-      getFirestore,
-      collection,
-      addDoc,
-      deleteDoc,
-      doc,
-      setDoc,
-      onSnapshot,
-      query,
-      orderBy
-    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import {
+    getFirestore,
+    collection,
+    addDoc,
+    deleteDoc,
+    doc,
+    setDoc,
+    onSnapshot,
+    query,
+    orderBy
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 
-    // 1) ID LOCAL
-    if (!localStorage.getItem("peakUserId")) {
-      localStorage.setItem("peakUserId", crypto.randomUUID());
+  // 1) ID LOCAL
+  if (!localStorage.getItem("peakUserId")) {
+    localStorage.setItem("peakUserId", crypto.randomUUID());
+  }
+  const localUserId = localStorage.getItem("peakUserId");
+
+  // 2) PSEUDO LOCAL
+  if (!localStorage.getItem("peakPseudo")) {
+    const pseudo = prompt("Choisis ton pseudo Peak :");
+    localStorage.setItem("peakPseudo", pseudo || "Joueur");
+  }
+  let localPseudo = localStorage.getItem("peakPseudo");
+
+  document.getElementById("user-info").textContent =
+    "Connecté en tant que " + localPseudo +
+    " (ID : " + localUserId.slice(0, 8) + "…)";
+
+  // 3) Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyDb0hPFAQ2X-czfL71R3tJMU3cue84koTE",
+    authDomain: "peak-hub-803e8.firebaseapp.com",
+    projectId: "peak-hub-803e8",
+    storageBucket: "peak-hub-803e8.firebasestorage.app",
+    messagingSenderId: "660080957005",
+    appId: "1:660080957005:web:57e94fde72d949ee69ee04",
+    measurementId: "G-DH9YF0MZSW"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // 4) Lobbys
+  const lobbiesRef = collection(db, "lobbies");
+  const lobbiesQuery = query(lobbiesRef, orderBy("createdAt", "desc"));
+
+  window.addLobby = async (url, label) => {
+    const desc = document.getElementById("lobby-desc").value;
+    const voice = document.getElementById("lobby-voice").value;
+
+    if (!url || !label) {
+      alert("Merci de remplir l’URL et le nom du lobby");
+      return;
     }
-    const localUserId = localStorage.getItem("peakUserId");
 
-    // 2) PSEUDO LOCAL
-    if (!localStorage.getItem("peakPseudo")) {
-      const pseudo = prompt("Choisis ton pseudo Peak :");
-      localStorage.setItem("peakPseudo", pseudo || "Joueur");
+    let voiceLink = voice;
+    if (voice && !voice.startsWith("http://") && !voice.startsWith("https://")) {
+      voiceLink = "https://" + voice;
     }
-    let localPseudo = localStorage.getItem("peakPseudo");
+
+    try {
+      await addDoc(lobbiesRef, {
+        url,
+        label,
+        desc,
+        voice: voiceLink,
+        owner: localUserId,
+        pseudo: localPseudo,
+        createdAt: Date.now()
+      });
+    } catch (e) {
+      console.error("Erreur addLobby:", e);
+      alert("Impossible d’ajouter le lobby (permissions Firestore ?)");
+      return;
+    }
+
+    document.getElementById("lobby-url").value = "";
+    document.getElementById("lobby-label").value = "";
+    document.getElementById("lobby-desc").value = "";
+    document.getElementById("lobby-voice").value = "";
+  };
+
+  window.deleteLobby = async (id, owner) => {
+    if (localUserId !== owner) {
+      alert("Tu ne peux pas supprimer le lobby de quelqu'un d'autre");
+      return;
+    }
+    try {
+      await deleteDoc(doc(db, "lobbies", id));
+    } catch (e) {
+      console.error("Erreur deleteLobby:", e);
+      alert("Impossible de supprimer le lobby (permissions Firestore ?)");
+    }
+  };
+
+  onSnapshot(lobbiesQuery, snapshot => {
+    const container = document.getElementById("lobbies");
+    container.innerHTML = "";
+
+    snapshot.forEach(docu => {
+      const data = docu.data();
+      const div = document.createElement("div");
+
+      const isOwner = localUserId === data.owner;
+
+      div.innerHTML = `
+        <p><strong>${data.label}</strong> <small>(${data.pseudo})</small></p>
+        <p>${data.desc || ""}</p>
+
+        ${data.voice
+          ? `<p class="voice-link">Salon vocal : <a href="${data.voice}" target="_blank">${data.voice}</a></p>`
+          : ""
+        }
+
+        <p class="lobby-url">${data.url}</p>
+
+        <button onclick="window.open('${data.url}', '_blank')">Rejoindre</button>
+
+        ${isOwner
+          ? `<button onclick="deleteLobby('${docu.id}', '${data.owner}')">Supprimer mon lobby</button>`
+          : `<small>Créé par ${data.pseudo}</small>`}
+      `;
+
+      container.appendChild(div);
+    });
+  });
+
+  // 5) Changer de pseudo
+  window.changePseudo = () => {
+    const nouveau = prompt("Nouveau pseudo :");
+    if (!nouveau) return;
+
+    localStorage.setItem("peakPseudo", nouveau);
+    localPseudo = nouveau;
 
     document.getElementById("user-info").textContent =
-      "Connecté en tant que " + localPseudo +
+      "Connecté en tant que " + nouveau +
       " (ID : " + localUserId.slice(0, 8) + "…)";
 
-    // 3) Firebase
-    const firebaseConfig = {
-      apiKey: "AIzaSyDb0hPFAQ2X-czfL71R3tJMU3cue84koTE",
-      authDomain: "peak-hub-803e8.firebaseapp.com",
-      projectId: "peak-hub-803e8",
-      storageBucket: "peak-hub-803e8.firebasestorage.app",
-      messagingSenderId: "660080957005",
-      appId: "1:660080957005:web:57e94fde72d949ee69ee04",
-      measurementId: "G-DH9YF0MZSW"
-    };
+    alert("Pseudo mis à jour !");
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+  // 6) Présence (joueurs connectés) – isolée pour ne pas casser le reste
+  const onlineUsersRef = collection(db, "onlineUsers");
+  let onlineRef = doc(db, "onlineUsers", localUserId);
 
-    let onlineRef = null;
+  window.leaveHub = async () => {
+    try {
+      await deleteDoc(onlineRef);
+      alert("Tu as quitté le Hub.");
+    } catch (e) {
+      console.error("Erreur leaveHub:", e);
+    }
+  };
 
-    async function init() {
-      // 4) Système de joueurs connectés
-      onlineRef = doc(db, "onlineUsers", localUserId);
-
+  (async () => {
+    try {
       await setDoc(onlineRef, {
         pseudo: localPseudo,
         lastSeen: Date.now()
@@ -169,21 +278,13 @@
         setDoc(onlineRef, {
           pseudo: localPseudo,
           lastSeen: Date.now()
-        });
+        }).catch(e => console.error("Erreur update presence:", e));
       }, 30000);
 
       window.addEventListener("beforeunload", () => {
-        if (onlineRef) deleteDoc(onlineRef);
+        deleteDoc(onlineRef).catch(() => {});
       });
 
-      window.leaveHub = async () => {
-        if (onlineRef) {
-          await deleteDoc(onlineRef);
-          alert("Tu as quitté le Hub.");
-        }
-      };
-
-      const onlineUsersRef = collection(db, "onlineUsers");
       onSnapshot(onlineUsersRef, snapshot => {
         const now = Date.now();
         const list = document.getElementById("online-list");
@@ -203,100 +304,13 @@
 
         document.getElementById("online-count").textContent = count;
       });
-
-      // 5) Lobbys
-      const lobbiesRef = collection(db, "lobbies");
-      const lobbiesQuery = query(lobbiesRef, orderBy("createdAt", "desc"));
-
-      window.addLobby = async (url, label) => {
-        const desc = document.getElementById("lobby-desc").value;
-        const voice = document.getElementById("lobby-voice").value;
-
-        if (!url || !label) {
-          alert("Merci de remplir l’URL et le nom du lobby");
-          return;
-        }
-
-        let voiceLink = voice;
-        if (voice && !voice.startsWith("http://") && !voice.startsWith("https://")) {
-          voiceLink = "https://" + voice;
-        }
-
-        await addDoc(lobbiesRef, {
-          url,
-          label,
-          desc,
-          voice: voiceLink,
-          owner: localUserId,
-          pseudo: localPseudo,
-          createdAt: Date.now()
-        });
-
-        document.getElementById("lobby-url").value = "";
-        document.getElementById("lobby-label").value = "";
-        document.getElementById("lobby-desc").value = "";
-        document.getElementById("lobby-voice").value = "";
-      };
-
-      window.deleteLobby = async (id, owner) => {
-        if (localUserId !== owner) {
-          alert("Tu ne peux pas supprimer le lobby de quelqu'un d'autre");
-          return;
-        }
-        await deleteDoc(doc(db, "lobbies", id));
-      };
-
-      onSnapshot(lobbiesQuery, snapshot => {
-        const container = document.getElementById("lobbies");
-        container.innerHTML = "";
-
-        snapshot.forEach(docu => {
-          const data = docu.data();
-          const div = document.createElement("div");
-
-          const isOwner = localUserId === data.owner;
-
-          div.innerHTML = `
-            <p><strong>${data.label}</strong> <small>(${data.pseudo})</small></p>
-            <p>${data.desc || ""}</p>
-
-            ${data.voice
-              ? `<p class="voice-link">Salon vocal : <a href="${data.voice}" target="_blank">${data.voice}</a></p>`
-              : ""
-            }
-
-            <p class="lobby-url">${data.url}</p>
-
-            <button onclick="window.open('${data.url}', '_blank')">Rejoindre</button>
-
-            ${isOwner
-              ? `<button onclick="deleteLobby('${docu.id}', '${data.owner}')">Supprimer mon lobby</button>`
-              : `<small>Créé par ${data.pseudo}</small>`}
-          `;
-
-          container.appendChild(div);
-        });
-      });
+    } catch (e) {
+      console.error("Erreur présence (onlineUsers):", e);
+      // On n’affiche rien, mais surtout on ne bloque pas le reste
     }
+  })();
+</script>
 
-    // Changer de pseudo
-    window.changePseudo = () => {
-      const nouveau = prompt("Nouveau pseudo :");
-      if (!nouveau) return;
-
-      localStorage.setItem("peakPseudo", nouveau);
-      localPseudo = nouveau;
-
-      document.getElementById("user-info").textContent =
-        "Connecté en tant que " + nouveau +
-        " (ID : " + localUserId.slice(0, 8) + "…)";
-
-      alert("Pseudo mis à jour !");
-    };
-
-    // Lancer l'init
-    init();
-  </script>
 
 </body>
 </html>
