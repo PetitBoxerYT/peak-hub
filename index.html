@@ -281,6 +281,7 @@
     window.changePseudo = () => {
       const nouveau = prompt("Nouveau pseudo :");
       if (!nouveau) return;
+localStorage.removeItem("hasQuitHub");
 
       localStorage.setItem("peakPseudo", nouveau);
       localPseudo = nouveau;
