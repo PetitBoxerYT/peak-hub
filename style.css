@@ -172,3 +172,43 @@ button.danger {
 .hidden {
   display: none;
 }
+/* ------------------------------
+   POPUP PEAK GLASS
+------------------------------ */
+
+.popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backdrop-filter: blur(8px);
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.popup.hidden {
+  display: none;
+}
+
+.popup-content {
+  padding: 25px;
+  border-radius: 18px;
+  width: 320px;
+  text-align: center;
+  animation: popupFade 0.25s ease;
+}
+
+@keyframes popupFade {
+  from { transform: scale(0.8); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
+.popup-buttons {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+}
