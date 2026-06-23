@@ -1,0 +1,174 @@
+/* ------------------------------
+   BASE
+------------------------------ */
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Darumadrop One", sans-serif;
+  transition: background 0.4s ease, color 0.4s ease;
+}
+
+/* ------------------------------
+   THEME LIGHT
+------------------------------ */
+
+body.light {
+  background: #f2f6ff;
+  color: #222;
+}
+
+body.light .glass {
+  background: white;
+  border: 2px solid #ddd;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  backdrop-filter: blur(0px);
+}
+
+/* ------------------------------
+   THEME GLASS VIOLET PEAK
+------------------------------ */
+
+body.glass {
+  background: linear-gradient(135deg, #6A00F4, #9B4DFF, #00C2FF);
+  background-size: 200% 200%;
+  animation: gradientMove 10s ease infinite;
+  color: white;
+}
+
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+body.glass .glass {
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.3);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.25);
+}
+
+/* ------------------------------
+   LAYOUT
+------------------------------ */
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+}
+
+main {
+  max-width: 900px;
+  margin: auto;
+  padding: 20px;
+}
+
+section {
+  padding: 20px;
+  border-radius: 16px;
+  margin-bottom: 20px;
+}
+
+/* ------------------------------
+   BUTTONS
+------------------------------ */
+
+button {
+  font-family: inherit;
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  margin: 5px;
+  transition: 0.2s;
+}
+
+body.light button {
+  background: #6EC3FF;
+  color: black;
+}
+
+body.glass button {
+  background: #FFD84D;
+  color: #4A2A00;
+  box-shadow: 0 0 10px rgba(255,216,77,0.5);
+}
+
+button:hover {
+  transform: translateY(-2px);
+}
+
+button.danger {
+  background: #ff6b6b !important;
+  color: white !important;
+}
+
+/* ------------------------------
+   LOBBIES
+------------------------------ */
+
+#lobbies > div {
+  padding: 15px;
+  border-radius: 14px;
+  margin-bottom: 15px;
+}
+
+.lobby-url {
+  font-family: monospace;
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+/* ------------------------------
+   ONLINE LIST
+------------------------------ */
+
+.pill-list div {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  margin: 4px;
+  background: rgba(255,255,255,0.25);
+  backdrop-filter: blur(10px);
+}
+
+/* ------------------------------
+   THEME MENU
+------------------------------ */
+
+.theme-menu {
+  position: relative;
+}
+
+#themeButton {
+  padding: 8px 16px;
+  border-radius: 8px;
+}
+
+.dropdown {
+  position: absolute;
+  right: 0;
+  top: 40px;
+  background: rgba(255,255,255,0.2);
+  backdrop-filter: blur(15px);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+
+.dropdown div {
+  padding: 10px 20px;
+  cursor: pointer;
+}
+
+.dropdown div:hover {
+  background: rgba(255,255,255,0.3);
+}
+
+.hidden {
+  display: none;
+}
