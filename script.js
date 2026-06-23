@@ -259,3 +259,28 @@ window.setTheme = theme => {
   document.body.className = theme;
   themeDropdown.classList.add("hidden");
 };
+
+function peakPopup(title, message) {
+  return new Promise(resolve => {
+    const popup = document.getElementById("peak-popup");
+    const titleEl = document.getElementById("popup-title");
+    const msgEl = document.getElementById("popup-message");
+    const btnCancel = document.getElementById("popup-cancel");
+    const btnConfirm = document.getElementById("popup-confirm");
+
+    titleEl.textContent = title;
+    msgEl.textContent = message;
+
+    popup.classList.remove("hidden");
+
+    btnCancel.onclick = () => {
+      popup.classList.add("hidden");
+      resolve(false);
+    };
+
+    btnConfirm.onclick = () => {
+      popup.classList.add("hidden");
+      resolve(true);
+    };
+  });
+}
