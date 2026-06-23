@@ -297,21 +297,23 @@
     const onlineRef = doc(db, "onlineUsers", localUserId);
 
     window.leaveHub = async () => {
-      try {
-        // quitter le lobby courant si besoin
-        if (currentLobbyId) {
-          const playerRef = doc(db, "lobbies", currentLobbyId, "players", localUserId);
-          await deleteDoc(playerRef).catch(() => {});
-          currentLobbyId = null;
-          localStorage.removeItem("currentLobbyId");
-        }
+  try {
+    localStorage.setItem("hasQuitHub", "true");
 
-        await deleteDoc(onlineRef).catch(() => {});
-        alert("Tu as quitté le Hub.");
-      } catch (e) {
-        console.error("Erreur leaveHub:", e);
-      }
-    };
+    if (currentLobbyId) {
+      const playerRef = doc(db, "lobbies", currentLobbyId, "players", localUserId);
+      await deleteDoc(playerRef).catch(() => {});
+      currentLobbyId = null;
+      localStorage.removeItem("currentLobbyId");
+    }
+
+    await deleteDoc(onlineRef).catch(() => {});
+    alert("Tu as quitté le Hub.");
+  } catch (e) {
+    console.error("Erreur leaveHub:", e);
+  }
+};
+
 
     (async () => {
       try {
