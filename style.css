@@ -212,3 +212,49 @@ button.danger {
   display: flex;
   justify-content: space-between;
 }
+
+/* ------------------------------
+   INPUTS PEAK GLASS
+------------------------------ */
+
+input {
+  width: 100%;
+  padding: 12px 15px;
+  margin: 8px 0;
+  border-radius: 12px;
+  font-size: 15px;
+  font-family: inherit;
+  outline: none;
+  transition: 0.2s;
+  border: none;
+}
+
+/* Thème clair */
+body.light input {
+  background: #ffffff;
+  border: 2px solid #d0d0d0;
+  color: #222;
+}
+
+body.light input:focus {
+  border-color: #6EC3FF;
+  box-shadow: 0 0 8px rgba(110,195,255,0.6);
+}
+
+/* Thème Peak Glass Violet */
+body.glass input {
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.35);
+  color: white;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+body.glass input::placeholder {
+  color: rgba(255,255,255,0.7);
+}
+
+body.glass input:focus {
+  border-color: #FFD84D;
+  box-shadow: 0 0 10px rgba(255,216,77,0.6);
+}
