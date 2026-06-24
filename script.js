@@ -1,215 +1,312 @@
-/* ------------------------------
-   BASE
------------------------------- */
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  deleteDoc,
+  doc,
+  setDoc,
+  onSnapshot,
+  query,
+  orderBy
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-body {
-  margin: 0;
-  padding: 0;
-  font-family: "Darumadrop One", sans-serif;
-  transition: background 0.4s ease, color 0.4s ease;
-}
-
-/* ------------------------------
-   THEME LIGHT
------------------------------- */
-
-body.light {
-  background: #f2f6ff;
-  color: #222;
-}
-
-body.light .glass {
-  background: white;
-  border: 2px solid #ddd;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-  backdrop-filter: blur(0px);
-}
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 
 /* ------------------------------
-   THEME GLASS VIOLET PEAK
+   THEME AUTO AU CHARGEMENT
 ------------------------------ */
 
-body.glass {
-  background: linear-gradient(135deg, #6A00F4, #9B4DFF, #00C2FF);
-  background-size: 200% 200%;
-  animation: gradientMove 10s ease infinite;
-  color: white;
-}
-
-@keyframes gradientMove {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-body.glass .glass {
-  background: rgba(255,255,255,0.15);
-  border: 1px solid rgba(255,255,255,0.3);
-  backdrop-filter: blur(20px);
-  box-shadow: 0 8px 40px rgba(0,0,0,0.25);
-}
+const savedTheme = localStorage.getItem("peakTheme") || "glass";
+document.body.className = savedTheme;
 
 /* ------------------------------
-   LAYOUT
+   LOCAL USER
 ------------------------------ */
 
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px;
+if (!localStorage.getItem("peakUserId")) {
+  localStorage.setItem("peakUserId", crypto.randomUUID());
 }
+const localUserId = localStorage.getItem("peakUserId");
 
-main {
-  max-width: 900px;
-  margin: auto;
-  padding: 20px;
+if (!localStorage.getItem("peakPseudo")) {
+  const pseudo = prompt("Choisis ton pseudo Peak :");
+  localStorage.setItem("peakPseudo", pseudo || "Joueur");
 }
+let localPseudo = localStorage.getItem("peakPseudo");
 
-section {
-  padding: 20px;
-  border-radius: 16px;
-  margin-bottom: 20px;
-}
+document.getElementById("user-info").textContent =
+  "Connecté en tant que " + localPseudo +
+  " (ID : " + localUserId.slice(0, 8) + "…)";
 
 /* ------------------------------
-   BUTTONS
+   FIREBASE
 ------------------------------ */
 
-button {
-  font-family: inherit;
-  padding: 10px 20px;
-  border-radius: 10px;
-  border: none;
-  cursor: pointer;
-  font-size: 16px;
-  margin: 5px;
-  transition: 0.2s;
-}
+const firebaseConfig = {
+  apiKey: "AIzaSyDb0hPFAQ2X-czfL71R3tJMU3cue84koTE",
+  authDomain: "peak-hub-803e8.firebaseapp.com",
+  projectId: "peak-hub-803e8",
+  storageBucket: "peak-hub-803e8.firebasestorage.app",
+  messagingSenderId: "660080957005",
+  appId: "1:660080957005:web:57e94fde72d949ee69ee04",
+  measurementId: "G-DH9YF0MZSW"
+};
 
-body.light button {
-  background: #6EC3FF;
-  color: black;
-}
-
-body.glass button {
-  background: #FFD84D;
-  color: #4A2A00;
-  box-shadow: 0 0 10px rgba(255,216,77,0.5);
-}
-
-button:hover {
-  transform: translateY(-2px);
-}
-
-button.danger {
-  background: #ff6b6b !important;
-  color: white !important;
-}
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 /* ------------------------------
-   LOBBIES
+   LOBBYS
 ------------------------------ */
 
-#lobbies > div {
-  padding: 15px;
-  border-radius: 14px;
-  margin-bottom: 15px;
-}
+const lobbiesRef = collection(db, "lobbies");
+const lobbiesQuery = query(lobbiesRef, orderBy("createdAt", "desc"));
 
-.lobby-url {
-  font-family: monospace;
-  font-size: 13px;
-  opacity: 0.8;
-}
+let currentLobbyId = localStorage.getItem("currentLobbyId") || null;
+
+window.addLobby = async (url, label) => {
+  const desc = document.getElementById("lobby-desc").value;
+  const voice = document.getElementById("lobby-voice").value;
+
+  if (!url || !label) {
+    peakPopup("Champs manquants", "Merci de remplir l’URL et le nom du lobby.");
+    return;
+  }
+
+  let voiceLink = voice;
+  if (voice && !voice.startsWith("http")) {
+    voiceLink = "https://" + voice;
+  }
+
+  await addDoc(lobbiesRef, {
+    url,
+    label,
+    desc,
+    voice: voiceLink,
+    owner: localUserId,
+    pseudo: localPseudo,
+    createdAt: Date.now()
+  });
+
+  document.getElementById("lobby-url").value = "";
+  document.getElementById("lobby-label").value = "";
+  document.getElementById("lobby-desc").value = "";
+  document.getElementById("lobby-voice").value = "";
+};
+
+window.deleteLobby = async (id, owner) => {
+  if (localUserId !== owner) {
+    peakPopup("Action refusée", "Tu ne peux pas supprimer le lobby de quelqu’un d’autre.");
+    return;
+  }
+
+  const ok = await peakPopup(
+    "Supprimer le lobby",
+    "Es-tu sûr de vouloir supprimer ce lobby ?"
+  );
+  if (!ok) return;
+
+  await deleteDoc(doc(db, "lobbies", id));
+};
+
+window.joinLobby = async (lobbyId, url) => {
+  localStorage.removeItem("hasQuitHub");
+  startPresence();
+
+  if (currentLobbyId && currentLobbyId !== lobbyId) {
+    await deleteDoc(doc(db, "lobbies", currentLobbyId, "players", localUserId));
+  }
+
+  await setDoc(doc(db, "lobbies", lobbyId, "players", localUserId), {
+    pseudo: localPseudo,
+    lastSeen: Date.now()
+  });
+
+  currentLobbyId = lobbyId;
+  localStorage.setItem("currentLobbyId", lobbyId);
+
+  window.open(url, "_blank");
+};
+
+onSnapshot(lobbiesQuery, snapshot => {
+  const container = document.getElementById("lobbies");
+  container.innerHTML = "";
+
+  snapshot.forEach(docu => {
+    const data = docu.data();
+    const lobbyId = docu.id;
+
+    const div = document.createElement("div");
+    div.className = "glass";
+
+    div.innerHTML = `
+      <p><strong>${data.label}</strong> <small>(${data.pseudo})</small></p>
+      <p>${data.desc || ""}</p>
+
+      ${data.voice ? `<p>🔊 <a href="${data.voice}" target="_blank">${data.voice}</a></p>` : ""}
+
+      <p><span id="players-${lobbyId}">0</span> joueur(s)</p>
+
+      <p class="lobby-url">${data.url}</p>
+
+      <button onclick="joinLobby('${lobbyId}', '${data.url}')">Rejoindre</button>
+
+      ${localUserId === data.owner
+        ? `<button onclick="deleteLobby('${lobbyId}', '${data.owner}')" class="danger">Supprimer</button>`
+        : `<small>Créé par ${data.pseudo}</small>`}
+    `;
+
+    container.appendChild(div);
+
+    const playersRef = collection(db, "lobbies", lobbyId, "players");
+    onSnapshot(playersRef, snap => {
+      const el = document.getElementById(`players-${lobbyId}`);
+      if (el) el.textContent = snap.size;
+    });
+  });
+});
 
 /* ------------------------------
-   ONLINE LIST
+   PSEUDO
 ------------------------------ */
 
-.pill-list div {
-  display: inline-block;
-  padding: 6px 12px;
-  border-radius: 20px;
-  margin: 4px;
-  background: rgba(255,255,255,0.25);
-  backdrop-filter: blur(10px);
-}
+window.changePseudo = () => {
+  const nouveau = prompt("Nouveau pseudo :");
+  if (!nouveau) return;
+
+  localStorage.setItem("peakPseudo", nouveau);
+  localPseudo = nouveau;
+
+  localStorage.removeItem("hasQuitHub");
+  startPresence();
+
+  document.getElementById("user-info").textContent =
+    "Connecté en tant que " + nouveau +
+    " (ID : " + localUserId.slice(0, 8) + "…)";
+};
 
 /* ------------------------------
-   THEME MENU
+   PRESENCE
 ------------------------------ */
 
-.theme-menu {
-  position: relative;
+const onlineUsersRef = collection(db, "onlineUsers");
+const onlineRef = doc(db, "onlineUsers", localUserId);
+
+let presenceInterval = null;
+let presenceStarted = false;
+
+function startPresence() {
+  if (presenceStarted) return;
+  presenceStarted = true;
+
+  setDoc(onlineRef, {
+    pseudo: localPseudo,
+    lastSeen: Date.now()
+  });
+
+  presenceInterval = setInterval(() => {
+    if (localStorage.getItem("hasQuitHub") === "true") return;
+    setDoc(onlineRef, {
+      pseudo: localPseudo,
+      lastSeen: Date.now()
+    });
+  }, 30000);
 }
 
-#themeButton {
-  padding: 8px 16px;
-  border-radius: 8px;
+function stopPresence() {
+  if (presenceInterval !== null) {
+    clearInterval(presenceInterval);
+    presenceInterval = null;
+  }
+  presenceStarted = false;
 }
 
-.dropdown {
-  position: absolute;
-  right: 0;
-  top: 40px;
-  background: rgba(255,255,255,0.2);
-  backdrop-filter: blur(15px);
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+if (localStorage.getItem("hasQuitHub") !== "true") {
+  startPresence();
 }
 
-.dropdown div {
-  padding: 10px 20px;
-  cursor: pointer;
-}
+window.leaveHub = async () => {
+  const ok = await peakPopup(
+    "Quitter le Hub",
+    "Tu vas quitter le Hub et être retiré des lobbys. Continuer ?"
+  );
+  if (!ok) return;
 
-.dropdown div:hover {
-  background: rgba(255,255,255,0.3);
-}
+  localStorage.setItem("hasQuitHub", "true");
+  stopPresence();
 
-.hidden {
-  display: none;
-}
+  if (currentLobbyId) {
+    await deleteDoc(doc(db, "lobbies", currentLobbyId, "players", localUserId));
+    currentLobbyId = null;
+    localStorage.removeItem("currentLobbyId");
+  }
+
+  await deleteDoc(onlineRef);
+  peakPopup("Déconnexion", "Tu as quitté le Hub.");
+};
+
+onSnapshot(onlineUsersRef, snapshot => {
+  const now = Date.now();
+  const list = document.getElementById("online-list");
+  list.innerHTML = "";
+
+  let count = 0;
+
+  snapshot.forEach(docu => {
+    const data = docu.data();
+    if (now - data.lastSeen < 60000) {
+      count++;
+      const div = document.createElement("div");
+      div.textContent = data.pseudo;
+      list.appendChild(div);
+    }
+  });
+
+  document.getElementById("online-count").textContent = count;
+});
+
+/* ------------------------------
+   THEME SWITCHER
+------------------------------ */
+
+const themeButton = document.getElementById("themeButton");
+const themeDropdown = document.getElementById("themeDropdown");
+
+themeButton.onclick = () => {
+  themeDropdown.classList.toggle("hidden");
+};
+
+window.setTheme = theme => {
+  document.body.className = theme;
+  localStorage.setItem("peakTheme", theme);
+  themeDropdown.classList.add("hidden");
+};
 
 /* ------------------------------
    POPUP PEAK GLASS
 ------------------------------ */
 
-.popup {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  backdrop-filter: blur(8px);
-  background: rgba(0,0,0,0.4);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 999;
-}
+function peakPopup(title, message) {
+  return new Promise(resolve => {
+    const popup = document.getElementById("peak-popup");
+    const titleEl = document.getElementById("popup-title");
+    const msgEl = document.getElementById("popup-message");
+    const btnCancel = document.getElementById("popup-cancel");
+    const btnConfirm = document.getElementById("popup-confirm");
 
-.popup.hidden {
-  display: none;
-}
+    titleEl.textContent = title;
+    msgEl.textContent = message;
 
-.popup-content {
-  padding: 25px;
-  border-radius: 18px;
-  width: 320px;
-  text-align: center;
-  animation: popupFade 0.25s ease;
-}
+    popup.classList.remove("hidden");
 
-@keyframes popupFade {
-  from { transform: scale(0.8); opacity: 0; }
-  to   { transform: scale(1); opacity: 1; }
-}
+    const close = (value) => {
+      popup.classList.add("hidden");
+      btnCancel.onclick = null;
+      btnConfirm.onclick = null;
+      resolve(value);
+    };
 
-.popup-buttons {
-  margin-top: 20px;
-  display: flex;
-  justify-content: space-between;
+    btnCancel.onclick = () => close(false);
+    btnConfirm.onclick = () => close(true);
+  });
 }
