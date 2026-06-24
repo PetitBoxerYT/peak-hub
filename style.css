@@ -258,3 +258,11 @@ body.glass input:focus {
   border-color: #FFD84D;
   box-shadow: 0 0 10px rgba(255,216,77,0.6);
 }
+
+/* Inputs parfaitement alignés */
+input {
+  width: 96%;
+  margin: 8px auto;
+  display: block;
+  box-sizing: border-box;
+}
