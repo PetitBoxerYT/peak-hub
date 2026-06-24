@@ -310,3 +310,27 @@ function peakPopup(title, message) {
     btnConfirm.onclick = () => close(true);
   });
 }
+
+window.joinLobby = async (lobbyId, url) => {
+  // Assurer que l'utilisateur est actif
+  localStorage.removeItem("hasQuitHub");
+  startPresence();
+
+  // Quitter l'ancien lobby si nécessaire
+  if (currentLobbyId && currentLobbyId !== lobbyId) {
+    await deleteDoc(doc(db, "lobbies", currentLobbyId, "players", localUserId));
+  }
+
+  // Ajouter le joueur dans le nouveau lobby
+  await setDoc(doc(db, "lobbies", lobbyId, "players", localUserId), {
+    pseudo: localPseudo,
+    lastSeen: Date.now()
+  });
+
+  // Sauvegarder le lobby actuel
+  currentLobbyId = lobbyId;
+  localStorage.setItem("currentLobbyId", lobbyId);
+
+  // Ouvrir le lien Steam
+  window.open(url, "_blank");
+};
