@@ -2,90 +2,439 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
+  <title>Peak Hub</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Peak Multiplayer Hub</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #050814;
+      color: #f5f7ff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px;
+    }
 
-  <link rel="stylesheet" href="style.css?v=1.0">
-  <link href="https://fonts.googleapis.com/css2?family=Darumadrop+One&display=swap" rel="stylesheet">
+    h1 {
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      opacity: 0.7;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: #0b1020;
+      border-radius: 16px;
+      padding: 16px 20px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(80, 120, 255, 0.25);
+      max-width: 480px;
+      width: 100%;
+      margin-bottom: 16px;
+    }
+
+    .card h2 {
+      margin-top: 0;
+      margin-bottom: 8px;
+      font-size: 18px;
+    }
+
+    .card p {
+      margin-top: 0;
+      margin-bottom: 12px;
+      font-size: 14px;
+      opacity: 0.8;
+    }
+
+    label {
+      font-size: 13px;
+      opacity: 0.85;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(120, 140, 200, 0.5);
+      background: #050814;
+      color: #f5f7ff;
+      font-size: 14px;
+      margin-bottom: 10px;
+      outline: none;
+    }
+
+    input:focus, select:focus {
+      border-color: #4f7dff;
+      box-shadow: 0 0 0 1px rgba(79, 125, 255, 0.4);
+    }
+
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 8px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    button.primary {
+      background: linear-gradient(135deg, #4f7dff, #7f9dff);
+      color: #fff;
+    }
+
+    button.danger {
+      background: #ff4f6a;
+      color: #fff;
+    }
+
+    button.secondary {
+      background: #151a2b;
+      color: #f5f7ff;
+      border: 1px solid rgba(120, 140, 200, 0.5);
+    }
+
+    .row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .row > * {
+      flex: 1;
+    }
+
+    #connectionCard {
+      text-align: center;
+    }
+
+    #connectedInfo {
+      font-size: 14px;
+      margin-bottom: 10px;
+      opacity: 0.85;
+    }
+
+    #lobbyList {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .lobby {
+      background: #090e1c;
+      border-radius: 12px;
+      padding: 10px 12px;
+      border: 1px solid rgba(90, 120, 220, 0.4);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .lobby-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .lobby h3 {
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .lobby p {
+      margin: 0;
+      font-size: 13px;
+      opacity: 0.8;
+    }
+
+    #search {
+      margin-top: 6px;
+    }
+  </style>
 </head>
-<!-- redeploy -->
+<body>
+  <h1>Peak Hub</h1>
+  <div class="subtitle">Lobbys communautaires Peak</div>
 
-<body class="light">
-
-  <header>
-    <h1>Peak Multiplayer Hub</h1>
-
-    <div class="theme-menu">
-      <button id="themeButton">🎨 Thèmes</button>
-      <div id="themeDropdown" class="dropdown hidden">
-        <div onclick="setTheme('light')">🌞 Thème clair</div>
-        <div onclick="setTheme('glass')">🟣 Peak Glass Violet</div>
-      </div>
-    </div>
-  </header>
-
-  <main>
-
-    <section class="user-card glass">
-      <div id="user-info">Connexion…</div>
-      <button onclick="changePseudo()">Changer de pseudo</button>
-      <button onclick="leaveHub()" class="danger">Je ne joue plus</button>
-    </section>
-
-    <section class="glass">
-      <h2>Joueurs connectés : <span id="online-count">0</span></h2>
-      <div id="online-list" class="pill-list"></div>
-    </section>
-
-    <section class="glass">
-      <h2>Lobbys disponibles</h2>
-      <div id="lobbies"></div>
-    </section>
-
-    <section class="glass">
-      <h3>Créer un lobby</h3>
-
-      <input id="lobby-url" placeholder="steam://joinlobby/..." size="40">
-      <input id="lobby-label" placeholder="Nom du lobby" size="25">
-      <input id="lobby-desc" placeholder="Description du lobby" size="40">
-      <input id="lobby-voice" placeholder="Lien du salon vocal (optionnel)" size="40">
-
-      <button onclick="addLobby(
-        document.getElementById('lobby-url').value,
-        document.getElementById('lobby-label').value
-      )">Ajouter</button>
-    </section>
-
-  </main>
-
-  <!-- Popup Peak Glass -->
-  <div id="peak-popup" class="popup hidden">
-    <div class="popup-content glass">
-      <h3 id="popup-title"></h3>
-      <p id="popup-message"></p>
-
-      <div class="popup-buttons">
-        <button id="popup-cancel" class="danger">Annuler</button>
-        <button id="popup-confirm">OK</button>
-      </div>
+  <!-- Connexion / pseudo -->
+  <div class="card" id="connectionCard">
+    <h2>Connexion…</h2>
+    <p id="connectedInfo">Chargement de ton pseudo…</p>
+    <div class="row">
+      <button class="secondary" id="changeNameBtn">Changer de pseudo</button>
+      <button class="danger" id="logoutBtn">Je ne joue plus</button>
     </div>
   </div>
 
-  <script src="script.js?v=1.3" type="module"></script>
-<div class="create">
-  <input id="lobbyName" placeholder="Nom du lobby">
-  
-  <select id="visibility">
-    <option value="public">Public</option>
-    <option value="private">Privé</option>
-  </select>
+  <!-- Création de lobby -->
+  <div class="card">
+    <h2>Créer un lobby</h2>
+    <p>Configure ton lobby Peak, public ou privé avec mot de passe.</p>
 
-  <input id="password" placeholder="Mot de passe" style="display:none;">
+    <label for="lobbyName">Nom du lobby</label>
+    <input id="lobbyName" placeholder="Ex : FR - Chill - Duo">
 
-  <button id="createLobby">Créer</button>
-</div>
+    <label for="visibility">Visibilité</label>
+    <select id="visibility">
+      <option value="public">Public</option>
+      <option value="private">Privé (protégé par mot de passe)</option>
+    </select>
 
-<div id="lobbyList"></div>
+    <label for="password" id="passwordLabel" style="display:none;">Mot de passe (si privé)</label>
+    <input id="password" placeholder="Mot de passe du lobby" style="display:none;">
 
+    <button class="primary" id="createLobby">Créer</button>
+  </div>
+
+  <!-- Liste des lobbys -->
+  <div class="card">
+    <h2>Lobbys disponibles</h2>
+    <input id="search" placeholder="Rechercher un lobby…">
+    <div id="lobbyList"></div>
+  </div>
+
+  <!-- Script principal -->
+  <script type="module">
+    // ===============================
+    //  CONFIG FIREBASE
+    // ===============================
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      onSnapshot,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "TA_CLE",
+      authDomain: "TON_DOMAINE",
+      projectId: "TON_PROJECT_ID",
+      storageBucket: "TON_BUCKET",
+      messagingSenderId: "TON_ID",
+      appId: "TON_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // ===============================
+    //  SONS UI
+    // ===============================
+    const sounds = {
+      join: new Audio("sounds/ui_confirm.wav"),
+      click: new Audio("sounds/soft_tap.wav"),
+      error: new Audio("sounds/ui_error.wav"),
+      notify: new Audio("sounds/light_ding.wav"),
+      popup: new Audio("sounds/ui_slide.wav")
+    };
+
+    sounds.join.volume = 0.6;
+    sounds.click.volume = 0.45;
+    sounds.error.volume = 0.65;
+    sounds.notify.volume = 0.55;
+    sounds.popup.volume = 0.5;
+
+    // ===============================
+    //  PSEUDO / CONNEXION
+    // ===============================
+    const connectionCard = document.getElementById("connectionCard");
+    const connectedInfo = document.getElementById("connectedInfo");
+    const changeNameBtn = document.getElementById("changeNameBtn");
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    function askUsername() {
+      let name = prompt("Entre ton pseudo Peak :");
+      if (!name) return askUsername();
+      name = name.trim();
+      if (!name) return askUsername();
+      localStorage.setItem("username", name);
+      updateConnectionUI();
+    }
+
+    function updateConnectionUI() {
+      const username = localStorage.getItem("username");
+      if (!username) {
+        connectedInfo.textContent = "Tu n'es pas encore connecté.";
+        return;
+      }
+      connectedInfo.textContent = `Connecté en tant que ${username}`;
+    }
+
+    changeNameBtn.addEventListener("click", () => {
+      sounds.click.play();
+      askUsername();
+    });
+
+    logoutBtn.addEventListener("click", () => {
+      sounds.click.play();
+      localStorage.removeItem("username");
+      updateConnectionUI();
+    });
+
+    // init
+    if (!localStorage.getItem("username")) {
+      askUsername();
+    } else {
+      updateConnectionUI();
+    }
+
+    // ===============================
+    //  CREATION DE LOBBY
+    // ===============================
+    const createBtn = document.getElementById("createLobby");
+    const lobbyNameInput = document.getElementById("lobbyName");
+    const visibilitySelect = document.getElementById("visibility");
+    const passwordInput = document.getElementById("password");
+    const passwordLabel = document.getElementById("passwordLabel");
+
+    visibilitySelect.addEventListener("change", () => {
+      const isPrivate = visibilitySelect.value === "private";
+      passwordInput.style.display = isPrivate ? "block" : "none";
+      passwordLabel.style.display = isPrivate ? "block" : "none";
+    });
+
+    createBtn.addEventListener("click", async () => {
+      sounds.click.play();
+
+      const name = lobbyNameInput.value.trim();
+      const visibility = visibilitySelect.value;
+      const password = visibility === "private" ? passwordInput.value.trim() : null;
+      const username = localStorage.getItem("username") || "Anonyme";
+
+      if (!name) {
+        sounds.error.play();
+        alert("Le nom du lobby est obligatoire");
+        return;
+      }
+
+      if (visibility === "private" && !password) {
+        sounds.error.play();
+        alert("Mot de passe obligatoire pour un lobby privé");
+        return;
+      }
+
+      await addDoc(collection(db, "lobbies"), {
+        name,
+        visibility,
+        password,
+        creator: username,
+        createdAt: serverTimestamp()
+      });
+
+      sounds.join.play();
+      lobbyNameInput.value = "";
+      passwordInput.value = "";
+    });
+
+    // ===============================
+    //  AFFICHAGE DES LOBBYS + RECHERCHE
+    // ===============================
+    const lobbyList = document.getElementById("lobbyList");
+    const searchInput = document.getElementById("search");
+    let allLobbies = [];
+
+    onSnapshot(collection(db, "lobbies"), (snapshot) => {
+      allLobbies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      applyFilter();
+      if (snapshot.docChanges().length > 0) {
+        sounds.notify.play();
+      }
+    });
+
+    function displayLobbies(list) {
+      lobbyList.innerHTML = "";
+
+      if (list.length === 0) {
+        const empty = document.createElement("p");
+        empty.textContent = "Aucun lobby pour le moment.";
+        empty.style.opacity = "0.7";
+        empty.style.fontSize = "13px";
+        lobbyList.appendChild(empty);
+        return;
+      }
+
+      list.forEach(lobby => {
+        const div = document.createElement("div");
+        div.className = "lobby";
+
+        const header = document.createElement("div");
+        header.className = "lobby-header";
+
+        const title = document.createElement("h3");
+        title.textContent = lobby.name;
+
+        const vis = document.createElement("span");
+        vis.style.fontSize = "13px";
+        vis.style.opacity = "0.85";
+        vis.textContent = lobby.visibility === "private" ? "🔒 Privé" : "🌍 Public";
+
+        header.appendChild(title);
+        header.appendChild(vis);
+
+        const meta = document.createElement("p");
+        meta.textContent = `Créé par ${lobby.creator || "Inconnu"}`;
+
+        const btn = document.createElement("button");
+        btn.className = "secondary";
+        btn.textContent = "Rejoindre";
+        btn.addEventListener("click", () => {
+          attemptJoinLobby(lobby);
+        });
+
+        div.appendChild(header);
+        div.appendChild(meta);
+        div.appendChild(btn);
+
+        lobbyList.appendChild(div);
+      });
+    }
+
+    function applyFilter() {
+      const q = searchInput.value.toLowerCase();
+      const filtered = allLobbies.filter(lobby =>
+        lobby.name.toLowerCase().includes(q) ||
+        (lobby.creator && lobby.creator.toLowerCase().includes(q))
+      );
+      displayLobbies(filtered);
+    }
+
+    searchInput.addEventListener("input", () => {
+      applyFilter();
+    });
+
+    // ===============================
+    //  REJOINDRE UN LOBBY
+    // ===============================
+    function attemptJoinLobby(lobby) {
+      sounds.click.play();
+
+      if (lobby.visibility === "private") {
+        const input = prompt("Ce lobby est privé. Entrez le mot de passe :");
+        if (input !== lobby.password) {
+          sounds.error.play();
+          alert("Mot de passe incorrect");
+          return;
+        }
+      }
+
+      joinLobby(lobby);
+    }
+
+    function joinLobby(lobby) {
+      sounds.join.play();
+      alert(`Tu as rejoint le lobby : ${lobby.name}`);
+      // ici tu pourras plus tard rediriger vers une page / un overlay, etc.
+    }
+  </script>
 </body>
 </html>
