@@ -1,9 +1,9 @@
 const sounds = {
-  join: new Audio("sounds/ui_confirm.wav"),
-  click: new Audio("sounds/soft_tap.wav"),
-  error: new Audio("sounds/ui_error.wav"),
-  notify: new Audio("sounds/light_ding.wav"),
-  popup: new Audio("sounds/ui_slide.wav")
+  join: new Audio("ui_confirm.wav"),
+  click: new Audio("soft_tap.wav"),
+  error: new Audio("ui_error.wav"),
+  notify: new Audio("light_ding.wav"),
+  popup: new Audio("ui_slide.wav")
 };
 
 // Volumes calibrés (moyen)
