@@ -1,351 +1,140 @@
-const sounds = {
-  join: new Audio("ui_confirm.wav"),
-  click: new Audio("soft_tap.wav"),
-  error: new Audio("ui_error.wav"),
-  notify: new Audio("light_ding.wav"),
-  popup: new Audio("ui_slide.wav")
+// ===============================
+//  CONFIG FIREBASE
+// ===============================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  onSnapshot,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "TA_CLE",
+  authDomain: "TON_DOMAINE",
+  projectId: "TON_PROJECT_ID",
+  storageBucket: "TON_BUCKET",
+  messagingSenderId: "TON_ID",
+  appId: "TON_APP_ID"
 };
 
-// Volumes calibrés (moyen)
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// ===============================
+//  SONS UI
+// ===============================
+const sounds = {
+  join: new Audio("sounds/ui_confirm.wav"),
+  click: new Audio("sounds/soft_tap.wav"),
+  error: new Audio("sounds/ui_error.wav"),
+  notify: new Audio("sounds/light_ding.wav"),
+  popup: new Audio("sounds/ui_slide.wav")
+};
+
 sounds.join.volume = 0.6;
 sounds.click.volume = 0.45;
 sounds.error.volume = 0.65;
 sounds.notify.volume = 0.55;
 sounds.popup.volume = 0.5;
 
-import {
-  getFirestore,
-  collection,
-  addDoc,
-  deleteDoc,
-  doc,
-  setDoc,
-  onSnapshot,
-  query,
-  orderBy
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+// ===============================
+//  CREATION DE LOBBY
+// ===============================
+const createBtn = document.getElementById("createLobby");
+const lobbyNameInput = document.getElementById("lobbyName");
+const visibilitySelect = document.getElementById("visibility");
+const passwordInput = document.getElementById("password");
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+visibilitySelect.addEventListener("change", () => {
+  passwordInput.style.display = visibilitySelect.value === "private" ? "block" : "none";
+});
 
-/* ------------------------------
-   THEME AUTO AU CHARGEMENT
------------------------------- */
+createBtn.addEventListener("click", async () => {
+  sounds.click.play();
 
-const savedTheme = localStorage.getItem("peakTheme") || "glass";
-document.body.className = savedTheme;
+  const name = lobbyNameInput.value.trim();
+  const visibility = visibilitySelect.value;
+  const password = visibility === "private" ? passwordInput.value.trim() : null;
 
-/* ------------------------------
-   LOCAL USER
------------------------------- */
-
-if (!localStorage.getItem("peakUserId")) {
-  localStorage.setItem("peakUserId", crypto.randomUUID());
-}
-const localUserId = localStorage.getItem("peakUserId");
-
-if (!localStorage.getItem("peakPseudo")) {
-  const pseudo = prompt("Choisis ton pseudo Peak :");
-  localStorage.setItem("peakPseudo", pseudo || "Joueur");
-}
-let localPseudo = localStorage.getItem("peakPseudo");
-
-document.getElementById("user-info").textContent =
-  "Connecté en tant que " + localPseudo +
-  " (ID : " + localUserId.slice(0, 8) + "…)";
-
-/* ------------------------------
-   FIREBASE
------------------------------- */
-
-const firebaseConfig = {
-  apiKey: "AIzaSyDb0hPFAQ2X-czfL71R3tJMU3cue84koTE",
-  authDomain: "peak-hub-803e8.firebaseapp.com",
-  projectId: "peak-hub-803e8",
-  storageBucket: "peak-hub-803e8.firebasestorage.app",
-  messagingSenderId: "660080957005",
-  appId: "1:660080957005:web:57e94fde72d949ee69ee04",
-  measurementId: "G-DH9YF0MZSW"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-/* ------------------------------
-   LOBBYS
------------------------------- */
-
-const lobbiesRef = collection(db, "lobbies");
-const lobbiesQuery = query(lobbiesRef, orderBy("createdAt", "desc"));
-
-let currentLobbyId = localStorage.getItem("currentLobbyId") || null;
-
-window.addLobby = async (url, label) => {
-  const desc = document.getElementById("lobby-desc").value;
-  const voice = document.getElementById("lobby-voice").value;
-
-  if (!url || !label) {
-    peakPopup("Champs manquants", "Merci de remplir l’URL et le nom du lobby.");
+  if (!name) {
+    sounds.error.play();
+    alert("Le nom du lobby est obligatoire");
     return;
   }
 
-  let voiceLink = voice;
-  if (voice && !voice.startsWith("http")) {
-    voiceLink = "https://" + voice;
-  }
-
-  await addDoc(lobbiesRef, {
-    url,
-    label,
-    desc,
-    voice: voiceLink,
-    owner: localUserId,
-    pseudo: localPseudo,
-    createdAt: Date.now()
-  });
-
-  document.getElementById("lobby-url").value = "";
-  document.getElementById("lobby-label").value = "";
-  document.getElementById("lobby-desc").value = "";
-  document.getElementById("lobby-voice").value = "";
-};
-
-window.deleteLobby = async (id, owner) => {
-  if (localUserId !== owner) {
-    peakPopup("Action refusée", "Tu ne peux pas supprimer le lobby de quelqu’un d’autre.");
+  if (visibility === "private" && !password) {
+    sounds.error.play();
+    alert("Mot de passe obligatoire pour un lobby privé");
     return;
   }
 
-  const ok = await peakPopup(
-    "Supprimer le lobby",
-    "Es-tu sûr de vouloir supprimer ce lobby ?"
-  );
-  if (!ok) return;
-
-  await deleteDoc(doc(db, "lobbies", id));
-};
-
-window.joinLobby = async (lobbyId, url) => {
-  localStorage.removeItem("hasQuitHub");
-  startPresence();
-
-  if (currentLobbyId && currentLobbyId !== lobbyId) {
-    await deleteDoc(doc(db, "lobbies", currentLobbyId, "players", localUserId));
-  }
-
-  await setDoc(doc(db, "lobbies", lobbyId, "players", localUserId), {
-    pseudo: localPseudo,
-    lastSeen: Date.now()
+  await addDoc(collection(db, "lobbies"), {
+    name,
+    visibility,
+    password,
+    createdAt: serverTimestamp()
   });
 
-  currentLobbyId = lobbyId;
-  localStorage.setItem("currentLobbyId", lobbyId);
+  sounds.join.play();
+  lobbyNameInput.value = "";
+  passwordInput.value = "";
+});
 
-  window.open(url, "_blank");
-};
+// ===============================
+//  AFFICHAGE DES LOBBYS
+// ===============================
+const lobbyList = document.getElementById("lobbyList");
+let allLobbies = [];
 
-onSnapshot(lobbiesQuery, snapshot => {
-  const container = document.getElementById("lobbies");
-  container.innerHTML = "";
+onSnapshot(collection(db, "lobbies"), (snapshot) => {
+  allLobbies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  displayLobbies(allLobbies);
+  sounds.notify.play();
+});
 
-  snapshot.forEach(docu => {
-    const data = docu.data();
-    const lobbyId = docu.id;
+function displayLobbies(list) {
+  lobbyList.innerHTML = "";
 
+  list.forEach(lobby => {
     const div = document.createElement("div");
-    div.className = "glass";
+    div.className = "lobby";
 
     div.innerHTML = `
-      <p><strong>${data.label}</strong> <small>(${data.pseudo})</small></p>
-      <p>${data.desc || ""}</p>
-
-      ${data.voice ? `<p>🔊 <a href="${data.voice}" target="_blank">${data.voice}</a></p>` : ""}
-
-      <p><span id="players-${lobbyId}">0</span> joueur(s)</p>
-
-      <p class="lobby-url">${data.url}</p>
-
-      <button onclick="joinLobby('${lobbyId}', '${data.url}')">Rejoindre</button>
-
-      ${localUserId === data.owner
-        ? `<button onclick="deleteLobby('${lobbyId}', '${data.owner}')" class="danger">Supprimer</button>`
-        : `<small>Créé par ${data.pseudo}</small>`}
+      <h3>${lobby.name}</h3>
+      <p>Visibilité : ${lobby.visibility === "private" ? "🔒 Privé" : "🌍 Public"}</p>
+      <button data-id="${lobby.id}">Rejoindre</button>
     `;
 
-    container.appendChild(div);
-
-    const playersRef = collection(db, "lobbies", lobbyId, "players");
-    onSnapshot(playersRef, snap => {
-      const el = document.getElementById(`players-${lobbyId}`);
-      if (el) el.textContent = snap.size;
+    div.querySelector("button").addEventListener("click", () => {
+      attemptJoinLobby(lobby);
     });
+
+    lobbyList.appendChild(div);
   });
-});
-
-/* ------------------------------
-   PSEUDO
------------------------------- */
-
-window.changePseudo = () => {
-  const nouveau = prompt("Nouveau pseudo :");
-  if (!nouveau) return;
-
-  localStorage.setItem("peakPseudo", nouveau);
-  localPseudo = nouveau;
-
-  localStorage.removeItem("hasQuitHub");
-  startPresence();
-
-  document.getElementById("user-info").textContent =
-    "Connecté en tant que " + nouveau +
-    " (ID : " + localUserId.slice(0, 8) + "…)";
-};
-
-/* ------------------------------
-   PRESENCE
------------------------------- */
-
-const onlineUsersRef = collection(db, "onlineUsers");
-const onlineRef = doc(db, "onlineUsers", localUserId);
-
-let presenceInterval = null;
-let presenceStarted = false;
-
-function startPresence() {
-  if (presenceStarted) return;
-  presenceStarted = true;
-
-  setDoc(onlineRef, {
-    pseudo: localPseudo,
-    lastSeen: Date.now()
-  });
-
-  presenceInterval = setInterval(() => {
-    if (localStorage.getItem("hasQuitHub") === "true") return;
-    setDoc(onlineRef, {
-      pseudo: localPseudo,
-      lastSeen: Date.now()
-    });
-  }, 30000);
 }
 
-function stopPresence() {
-  if (presenceInterval !== null) {
-    clearInterval(presenceInterval);
-    presenceInterval = null;
-  }
-  presenceStarted = false;
-}
+// ===============================
+//  REJOINDRE UN LOBBY
+// ===============================
+function attemptJoinLobby(lobby) {
+  sounds.click.play();
 
-if (localStorage.getItem("hasQuitHub") !== "true") {
-  startPresence();
-}
+  if (lobby.visibility === "private") {
+    const input = prompt("Ce lobby est privé. Entrez le mot de passe :");
 
-window.leaveHub = async () => {
-  const ok = await peakPopup(
-    "Quitter le Hub",
-    "Tu vas quitter le Hub et être retiré des lobbys. Continuer ?"
-  );
-  if (!ok) return;
-
-  localStorage.setItem("hasQuitHub", "true");
-  stopPresence();
-
-  if (currentLobbyId) {
-    await deleteDoc(doc(db, "lobbies", currentLobbyId, "players", localUserId));
-    currentLobbyId = null;
-    localStorage.removeItem("currentLobbyId");
-  }
-
-  await deleteDoc(onlineRef);
-  peakPopup("Déconnexion", "Tu as quitté le Hub.");
-};
-
-onSnapshot(onlineUsersRef, snapshot => {
-  const now = Date.now();
-  const list = document.getElementById("online-list");
-  list.innerHTML = "";
-
-  let count = 0;
-
-  snapshot.forEach(docu => {
-    const data = docu.data();
-    if (now - data.lastSeen < 60000) {
-      count++;
-      const div = document.createElement("div");
-      div.textContent = data.pseudo;
-      list.appendChild(div);
+    if (input !== lobby.password) {
+      sounds.error.play();
+      alert("Mot de passe incorrect");
+      return;
     }
-  });
-
-  document.getElementById("online-count").textContent = count;
-});
-
-/* ------------------------------
-   THEME SWITCHER
------------------------------- */
-
-const themeButton = document.getElementById("themeButton");
-const themeDropdown = document.getElementById("themeDropdown");
-
-themeButton.onclick = () => {
-  themeDropdown.classList.toggle("hidden");
-};
-
-window.setTheme = theme => {
-  document.body.className = theme;
-  localStorage.setItem("peakTheme", theme);
-  themeDropdown.classList.add("hidden");
-};
-
-/* ------------------------------
-   POPUP PEAK GLASS
------------------------------- */
-
-function peakPopup(title, message) {
-  return new Promise(resolve => {
-    const popup = document.getElementById("peak-popup");
-    const titleEl = document.getElementById("popup-title");
-    const msgEl = document.getElementById("popup-message");
-    const btnCancel = document.getElementById("popup-cancel");
-    const btnConfirm = document.getElementById("popup-confirm");
-
-    titleEl.textContent = title;
-    msgEl.textContent = message;
-
-    popup.classList.remove("hidden");
-
-    const close = (value) => {
-      popup.classList.add("hidden");
-      btnCancel.onclick = null;
-      btnConfirm.onclick = null;
-      resolve(value);
-    };
-
-    btnCancel.onclick = () => close(false);
-    btnConfirm.onclick = () => close(true);
-  });
-}
-
-window.joinLobby = async (lobbyId, url) => {
-  // Assurer que l'utilisateur est actif
-  localStorage.removeItem("hasQuitHub");
-  startPresence();
-
-  // Quitter l'ancien lobby si nécessaire
-  if (currentLobbyId && currentLobbyId !== lobbyId) {
-    await deleteDoc(doc(db, "lobbies", currentLobbyId, "players", localUserId));
   }
 
-  // Ajouter le joueur dans le nouveau lobby
-  await setDoc(doc(db, "lobbies", lobbyId, "players", localUserId), {
-    pseudo: localPseudo,
-    lastSeen: Date.now()
-  });
+  joinLobby(lobby);
+}
 
-  // Sauvegarder le lobby actuel
-  currentLobbyId = lobbyId;
-  localStorage.setItem("currentLobbyId", lobbyId);
-
-  // Ouvrir le lien Steam
-  window.open(url, "_blank");
-};
+function joinLobby(lobby) {
+  sounds.join.play();
+  alert(`Tu as rejoint le lobby : ${lobby.name}`);
+}
