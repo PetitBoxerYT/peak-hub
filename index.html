@@ -1,9 +1,9 @@
-<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
   <title>Peak Hub</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Peak Multiplayer Hub</title>
   <style>
     body {
       margin: 0;
@@ -16,15 +16,22 @@
       padding: 24px;
     }
 
+  <link rel="stylesheet" href="style.css?v=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Darumadrop+One&display=swap" rel="stylesheet">
+</head>
+<!-- redeploy -->
     h1 {
       margin-bottom: 8px;
     }
 
+<body class="light">
     .subtitle {
       opacity: 0.7;
       margin-bottom: 24px;
     }
 
+  <header>
+    <h1>Peak Multiplayer Hub</h1>
     .card {
       background: #0b1020;
       border-radius: 16px;
@@ -36,6 +43,59 @@
       margin-bottom: 16px;
     }
 
+    <div class="theme-menu">
+      <button id="themeButton">🎨 Thèmes</button>
+      <div id="themeDropdown" class="dropdown hidden">
+        <div onclick="setTheme('light')">🌞 Thème clair</div>
+        <div onclick="setTheme('glass')">🟣 Peak Glass Violet</div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+    <section class="user-card glass">
+      <div id="user-info">Connexion…</div>
+      <button onclick="changePseudo()">Changer de pseudo</button>
+      <button onclick="leaveHub()" class="danger">Je ne joue plus</button>
+    </section>
+
+    <section class="glass">
+      <h2>Joueurs connectés : <span id="online-count">0</span></h2>
+      <div id="online-list" class="pill-list"></div>
+    </section>
+
+    <section class="glass">
+      <h2>Lobbys disponibles</h2>
+      <div id="lobbies"></div>
+    </section>
+
+    <section class="glass">
+      <h3>Créer un lobby</h3>
+
+      <input id="lobby-url" placeholder="steam://joinlobby/..." size="40">
+      <input id="lobby-label" placeholder="Nom du lobby" size="25">
+      <input id="lobby-desc" placeholder="Description du lobby" size="40">
+      <input id="lobby-voice" placeholder="Lien du salon vocal (optionnel)" size="40">
+
+      <button onclick="addLobby(
+        document.getElementById('lobby-url').value,
+        document.getElementById('lobby-label').value
+      )">Ajouter</button>
+    </section>
+
+  </main>
+
+  <!-- Popup Peak Glass -->
+  <div id="peak-popup" class="popup hidden">
+    <div class="popup-content glass">
+      <h3 id="popup-title"></h3>
+      <p id="popup-message"></p>
+
+      <div class="popup-buttons">
+        <button id="popup-cancel" class="danger">Annuler</button>
+        <button id="popup-confirm">OK</button>
+      </div>
     .card h2 {
       margin-top: 0;
       margin-bottom: 8px;
@@ -174,6 +234,14 @@
     </div>
   </div>
 
+  <script src="script.js?v=1.3" type="module"></script>
+<div class="create">
+  <input id="lobbyName" placeholder="Nom du lobby">
+  
+  <select id="visibility">
+    <option value="public">Public</option>
+    <option value="private">Privé</option>
+  </select>
   <!-- Création de lobby -->
   <div class="card">
     <h2>Créer un lobby</h2>
@@ -412,12 +480,15 @@
       applyFilter();
     });
 
+  <input id="password" placeholder="Mot de passe" style="display:none;">
     // ===============================
     //  REJOINDRE UN LOBBY
     // ===============================
     function attemptJoinLobby(lobby) {
       sounds.click.play();
 
+  <button id="createLobby">Créer</button>
+</div>
       if (lobby.visibility === "private") {
         const input = prompt("Ce lobby est privé. Entrez le mot de passe :");
         if (input !== lobby.password) {
@@ -427,6 +498,7 @@
         }
       }
 
+<div id="lobbyList"></div>
       joinLobby(lobby);
     }
 
