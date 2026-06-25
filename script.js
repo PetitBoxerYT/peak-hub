@@ -1,3 +1,18 @@
+const sounds = {
+  join: new Audio("sounds/ui_confirm.wav"),
+  click: new Audio("sounds/soft_tap.wav"),
+  error: new Audio("sounds/ui_error.wav"),
+  notify: new Audio("sounds/light_ding.wav"),
+  popup: new Audio("sounds/ui_slide.wav")
+};
+
+// Volumes calibrés (moyen)
+sounds.join.volume = 0.6;
+sounds.click.volume = 0.45;
+sounds.error.volume = 0.65;
+sounds.notify.volume = 0.55;
+sounds.popup.volume = 0.5;
+
 import {
   getFirestore,
   collection,
