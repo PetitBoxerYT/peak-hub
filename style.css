@@ -1,268 +1,94 @@
-/* ------------------------------
-   BASE
------------------------------- */
- 
+/* ======== STYLE PEAK CLAIR ======== */
+
+/* Fond général */
 body {
-  margin: 0;
-  padding: 0;
-  font-family: "Darumadrop One", sans-serif;
-  transition: background 0.4s ease, color 0.4s ease;
+    margin: 0;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    background: #c9ddff; /* Bleu clair saturé (Option B) */
+    color: #1a2a4a;
 }
 
-/* ------------------------------
-   THEME LIGHT
------------------------------- */
-
-body.light {
-  background: #f2f6ff;
-  color: #222;
+/* Titres */
+h1, h2 {
+    color: #1a2a4a;
+    margin-bottom: 10px;
 }
 
-body.light .glass {
-  background: white;
-  border: 2px solid #ddd;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-  backdrop-filter: blur(0px);
+/* Cartes blanches */
+.card {
+    background: white;
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    margin-bottom: 20px;
+    max-width: 600px;
+    width: 100%;
 }
 
-/* ------------------------------
-   THEME GLASS VIOLET PEAK
------------------------------- */
-
-body.glass {
-  background: linear-gradient(135deg, #6A00F4, #9B4DFF, #00C2FF);
-  background-size: 200% 200%;
-  animation: gradientMove 10s ease infinite;
-  color: white;
+/* Champs */
+input, select {
+    width: 100%;
+    padding: 8px;
+    margin-top: 4px;
+    margin-bottom: 12px;
+    border-radius: 6px;
+    border: 1px solid #b0c4de;
+    font-size: 14px;
 }
 
-@keyframes gradientMove {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-body.glass .glass {
-  background: rgba(255,255,255,0.15);
-  border: 1px solid rgba(255,255,255,0.3);
-  backdrop-filter: blur(20px);
-  box-shadow: 0 8px 40px rgba(0,0,0,0.25);
-}
-
-/* ------------------------------
-   LAYOUT
------------------------------- */
-
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px;
-}
-
-main {
-  max-width: 900px;
-  margin: auto;
-  padding: 20px;
-}
-
-section {
-  padding: 20px;
-  border-radius: 16px;
-  margin-bottom: 20px;
-}
-
-/* ------------------------------
-   BUTTONS
------------------------------- */
-
+/* Boutons */
 button {
-  font-family: inherit;
-  padding: 10px 20px;
-  border-radius: 10px;
-  border: none;
-  cursor: pointer;
-  font-size: 16px;
-  margin: 5px;
-  transition: 0.2s;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    color: white;
 }
 
-body.light button {
-  background: #6EC3FF;
-  color: black;
+/* Bouton bleu */
+button.primary {
+    background: #2d7dff;
 }
 
-body.glass button {
-  background: #FFD84D;
-  color: #4A2A00;
-  box-shadow: 0 0 10px rgba(255,216,77,0.5);
-}
-
-button:hover {
-  transform: translateY(-2px);
-}
-
+/* Bouton rouge */
 button.danger {
-  background: #ff6b6b !important;
-  color: white !important;
+    background: #ff4d4d;
 }
 
-/* ------------------------------
-   LOBBIES
------------------------------- */
-
-#lobbies > div {
-  padding: 15px;
-  border-radius: 14px;
-  margin-bottom: 15px;
+/* Bouton neutre */
+button.secondary {
+    background: #6c7a91;
 }
 
-.lobby-url {
-  font-family: monospace;
-  font-size: 13px;
-  opacity: 0.8;
+/* Liste des lobbys */
+.lobby {
+    background: white;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    border: 1px solid #d0d8e8;
 }
 
-/* ------------------------------
-   ONLINE LIST
------------------------------- */
-
-.pill-list div {
-  display: inline-block;
-  padding: 6px 12px;
-  border-radius: 20px;
-  margin: 4px;
-  background: rgba(255,255,255,0.25);
-  backdrop-filter: blur(10px);
+/* Ligne d’info */
+.lobby p {
+    margin: 4px 0;
 }
 
-/* ------------------------------
-   THEME MENU
------------------------------- */
-
-.theme-menu {
-  position: relative;
+/* Boutons dans les lobbys */
+.lobby button {
+    margin-right: 8px;
 }
 
-#themeButton {
-  padding: 8px 16px;
-  border-radius: 8px;
+/* Section joueurs */
+#playersList {
+    margin-top: 10px;
 }
 
-.dropdown {
-  position: absolute;
-  right: 0;
-  top: 40px;
-  background: rgba(255,255,255,0.2);
-  backdrop-filter: blur(15px);
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-}
-
-.dropdown div {
-  padding: 10px 20px;
-  cursor: pointer;
-}
-
-.dropdown div:hover {
-  background: rgba(255,255,255,0.3);
-}
-
-.hidden {
-  display: none;
-}
-/* ------------------------------
-   POPUP PEAK GLASS
------------------------------- */
-
-.popup {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  backdrop-filter: blur(8px);
-  background: rgba(0,0,0,0.4);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 999;
-}
-
-.popup.hidden {
-  display: none;
-}
-
-.popup-content {
-  padding: 25px;
-  border-radius: 18px;
-  width: 320px;
-  text-align: center;
-  animation: popupFade 0.25s ease;
-}
-
-@keyframes popupFade {
-  from { transform: scale(0.8); opacity: 0; }
-  to   { transform: scale(1); opacity: 1; }
-}
-
-.popup-buttons {
-  margin-top: 20px;
-  display: flex;
-  justify-content: space-between;
-}
-
-/* ------------------------------
-   INPUTS PEAK GLASS
------------------------------- */
-
-input {
-  width: calc(100% - 12px);
-  padding: 12px 15px;
-  margin: 8px 0;
-  border-radius: 12px;
-  font-size: 15px;
-  font-family: inherit;
-  outline: none;
-  transition: 0.2s;
-  border: none;
-}
-
-/* Thème clair */
-body.light input {
-  background: #ffffff;
-  border: 2px solid #d0d0d0;
-  color: #222;
-}
-
-body.light input:focus {
-  border-color: #6EC3FF;
-  box-shadow: 0 0 8px rgba(110,195,255,0.6);
-}
-
-/* Thème Peak Glass Violet */
-body.glass input {
-  background: rgba(255,255,255,0.2);
-  border: 1px solid rgba(255,255,255,0.35);
-  color: white;
-  backdrop-filter: blur(12px);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-}
-
-body.glass input::placeholder {
-  color: rgba(255,255,255,0.7);
-}
-
-body.glass input:focus {
-  border-color: #FFD84D;
-  box-shadow: 0 0 10px rgba(255,216,77,0.6);
-}
-
-/* Inputs parfaitement alignés */
-input {
-  width: 96%;
-  margin: 8px auto;
-  display: block;
-  box-sizing: border-box;
+/* Alignement */
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
