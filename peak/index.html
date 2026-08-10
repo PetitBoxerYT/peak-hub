@@ -2,58 +2,42 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Peak Hub</title>
+    <title>PEAK – Hub</title>
     <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 <div class="container">
+    <h1>PEAK – Hub Multijoueur</h1>
 
-    <h1>Peak Hub</h1>
-
-    <!-- Connexion -->
     <div class="card">
         <h2>Connexion…</h2>
         <p id="connectedInfo">Chargement de ton pseudo…</p>
-
-        <button class="secondary" id="changeNameBtn">Changer de pseudo</button>
-        <button class="danger" id="logoutBtn">Je ne joue plus</button>
+        <button class="secondary">Changer de pseudo</button>
+        <button class="danger">Je ne joue plus</button>
     </div>
 
-    <!-- Joueurs connectés -->
     <div class="card">
         <h2>Joueurs connectés :</h2>
         <div id="playersList"></div>
     </div>
 
-    <!-- Création de lobby -->
     <div class="card">
         <h2>Créer un lobby</h2>
-
         <label>steam://joinlobby/...</label>
-        <input id="steamLink" placeholder="steam://joinlobby/...">
-
+        <input placeholder="steam://joinlobby/...">
         <label>Nom du lobby</label>
-        <input id="lobbyName">
-
+        <input>
         <label>Description du lobby</label>
-        <input id="lobbyDesc">
-
+        <input>
         <label>Lien du salon vocal (optionnel)</label>
-        <input id="voiceLink">
-
-        <button class="primary" id="addLobby">Ajouter</button>
+        <input>
+        <button class="primary">Ajouter</button>
     </div>
 
-    <!-- Liste des lobbys -->
     <div class="card">
         <h2>Lobbys disponibles</h2>
         <div id="lobbyList"></div>
     </div>
-
 </div>
-
-<script src="script.js"></script>
 </body>
 </html>
- <!-- Reload GitHub -->
