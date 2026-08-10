@@ -34,3 +34,45 @@ Le projet utilise un **style premium**, des **pages séparées**, et une structu
 
 ## 📁 Structure du projet
 
+peak-hub/
+│
+├── index.html          # Launcher multi-jeux
+├── shared.css          # Style premium du launcher
+│
+├── peak/
+│   ├── index.html      # Page PEAK
+│   └── style.css       # Style Peak clair
+│
+├── repo/
+│   ├── index.html      # Page R.E.P.O.
+│   └── style.css       # Style R.E.P.O. premium
+│
+└── assets/             # (optionnel) logos, sons, images
+
+---
+
+## 🚀 Démo en ligne
+
+Disponible via GitHub Pages :  
+**https://petitboxeryt.github.io/peak-hub**
+
+---
+
+## 🔧 Technologies utilisées
+- HTML / CSS / JavaScript  
+- GitHub Pages (hébergement)  
+- Structure multi‑pages  
+- Style premium (cartes, ombres, dégradés)
+
+---
+
+## 🧩 Roadmap
+- 🌙 Mode sombre global (Launcher + PEAK + R.E.P.O.)
+- 🎨 Logos premium pour chaque jeu
+- 🔊 Intégration audio (sons UI déjà présents)
+- 🧪 Page “Tests” pour outils internes
+- ➕ Ajout d’autres jeux au launcher
+
+---
+
+**Beta – v0.70**
