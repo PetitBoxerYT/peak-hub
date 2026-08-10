@@ -79,6 +79,6 @@ addLobbyBtn.onclick = () => {
 
     loadLobbies();
 };
-
+// GitHub Reload
 // Initialisation
 loadLobbies();
