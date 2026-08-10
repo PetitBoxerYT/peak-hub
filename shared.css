@@ -1,94 +1,71 @@
-/* ======== STYLE PEAK CLAIR ======== */
-
-/* Fond général */
 body {
     margin: 0;
-    padding: 20px;
+    padding: 40px;
     font-family: Arial, sans-serif;
-    background: #c9ddff; /* Bleu clair saturé (Option B) */
+    background: linear-gradient(135deg, #c9ddff, #f3f7ff);
     color: #1a2a4a;
 }
 
-/* Titres */
-h1, h2 {
-    color: #1a2a4a;
-    margin-bottom: 10px;
+.launcher-container {
+    max-width: 900px;
+    margin: 0 auto;
+    text-align: center;
 }
 
-/* Cartes blanches */
-.card {
+h1 {
+    margin-bottom: 30px;
+}
+
+.games-grid {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.game-card {
     background: white;
+    border-radius: 16px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.18);
+    width: 260px;
     padding: 16px;
+    text-align: left;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.game-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 18px 40px rgba(0,0,0,0.25);
+}
+
+.game-banner {
+    height: 110px;
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    margin-bottom: 20px;
-    max-width: 600px;
-    width: 100%;
-}
-
-/* Champs */
-input, select {
-    width: 100%;
-    padding: 8px;
-    margin-top: 4px;
     margin-bottom: 12px;
-    border-radius: 6px;
-    border: 1px solid #b0c4de;
-    font-size: 14px;
+    background-size: cover;
+    background-position: center;
 }
 
-/* Boutons */
+/* Bannières (tu pourras mettre des vraies images plus tard) */
+.peak-banner {
+    background: linear-gradient(135deg, #2d7dff, #6fb1ff);
+}
+
+.repo-banner {
+    background: linear-gradient(135deg, #ff7b4d, #ffc46f);
+}
+
 button {
+    margin-top: 10px;
     padding: 8px 14px;
     border: none;
     border-radius: 6px;
-    font-size: 14px;
-    cursor: pointer;
-    color: white;
-}
-
-/* Bouton bleu */
-button.primary {
     background: #2d7dff;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
 }
 
-/* Bouton rouge */
-button.danger {
-    background: #ff4d4d;
-}
-
-/* Bouton neutre */
-button.secondary {
-    background: #6c7a91;
-}
-
-/* Liste des lobbys */
-.lobby {
-    background: white;
-    padding: 12px;
-    border-radius: 10px;
-    margin-bottom: 12px;
-    border: 1px solid #d0d8e8;
-}
-
-/* Ligne d’info */
-.lobby p {
-    margin: 4px 0;
-}
-
-/* Boutons dans les lobbys */
-.lobby button {
-    margin-right: 8px;
-}
-
-/* Section joueurs */
-#playersList {
-    margin-top: 10px;
-}
-
-/* Alignement */
-.container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+button:hover {
+    background: #225fcc;
 }
