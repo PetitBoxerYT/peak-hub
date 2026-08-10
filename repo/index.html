@@ -1,1 +1,50 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>R.E.P.O. – Hub</title>
+    <link rel="stylesheet" href="style.css">
+</head>
 
+<body>
+
+<div class="banner">
+    <h1>R.E.P.O. – Hub Multijoueur</h1>
+</div>
+
+<div class="container">
+
+    <!-- Informations du jeu -->
+    <div class="card">
+        <h2>Informations du jeu</h2>
+        <p><strong>Version :</strong> <span id="repoVersion">1.0.0</span></p>
+        <p><strong>Mod FR :</strong> <span id="modStatus">Installé ✔</span></p>
+    </div>
+
+    <!-- Création de salon -->
+    <div class="card">
+        <h2>Créer un salon</h2>
+
+        <label>Nom du salon</label>
+        <input id="roomName">
+
+        <label>Description du salon</label>
+        <input id="roomDesc">
+
+        <label>Lien vocal (optionnel)</label>
+        <input id="voiceLink">
+
+        <button class="primary" id="createRoom">Créer</button>
+    </div>
+
+    <!-- Liste des salons -->
+    <div class="card">
+        <h2>Salons disponibles</h2>
+        <div id="roomList"></div>
+    </div>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
