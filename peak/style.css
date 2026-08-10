@@ -1,1 +1,46 @@
+body {
+    margin: 0;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    background: #c9ddff;
+    color: #1a2a4a;
+}
 
+.container {
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+h1, h2 {
+    color: #1a2a4a;
+}
+
+.card {
+    background: white;
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    margin-bottom: 20px;
+}
+
+input {
+    width: 100%;
+    padding: 8px;
+    margin-top: 4px;
+    margin-bottom: 12px;
+    border-radius: 6px;
+    border: 1px solid #b0c4de;
+}
+
+button {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    color: white;
+}
+
+button.primary { background: #2d7dff; }
+button.secondary { background: #6c7a91; }
+button.danger { background: #ff4d4d; }
