@@ -1,26 +1,36 @@
-# 🦀 Peak Multiplayer Hub (Beta)
+# 🌟 Peak Hub – Launcher Multi‑Jeux (Beta)
 
-A small web hub inspired by the **Peak** style, allowing you to easily save, organize, and join Steam lobbies. Features include a cartoon interface, Peak colors, local persistence, and convenient search functionality.
+Peak Hub est un **launcher web multi‑jeux** permettant d’accéder facilement à plusieurs hubs multijoueurs :
+- **PEAK** (Steam, lobbys, tests)
+- **R.E.P.O.** (Unity, salons dédiés, mod FR)
 
----
-
-## ✨ Features
-
-- 🎨 **Peak-style interface** (pastel colors, black outlines, Darumadrop One font)
-- ➕ **Quickly add Steam lobbies**
-- 💾 **Automatic saving** to your browser (localStorage)
-- 🔍 **Search bar** to filter lobbies
-- 🗑️ **Delete a lobby** with one click
-- 📱 **Responsive interface**
-- 🧩 **Peak favicon** (blue avatar)
+Le projet utilise un **style premium**, des **pages séparées**, et une structure simple à étendre pour ajouter d’autres jeux.
 
 ---
 
-## 🚀 Online demo
+## ✨ Fonctionnalités principales
 
-Available via GitHub Pages:
-*petitboxeryt.github.io/peak-hub*
+### 🎮 Launcher Multi‑Jeux
+- Interface premium (cartes, dégradés, ombres)
+- Navigation simple entre les jeux
+- Pages dédiées pour chaque hub
+
+### 🟦 PEAK – Hub Multijoueur
+- Style Peak clair (bleu pastel)
+- Création de lobbys Steam
+- Liste des joueurs connectés
+- Boutons Rejoindre / Supprimer
+- Support du salon vocal
+- Interface simple et épurée
+
+### 🟧 R.E.P.O. – Hub Multijoueur
+- Bannière orange premium
+- Informations du jeu (version, mod FR)
+- Création de salons
+- Liste des salons disponibles
+- Interface cohérente avec PEAK
 
 ---
 
-Version 0.66
+## 📁 Structure du projet
+
