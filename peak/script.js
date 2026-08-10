@@ -1,68 +1,16 @@
-// =====================
-// PEAK – Hub Multijoueur
-// =====================
+import { db } from "../shared/firebase.js";
+import {
+    collection, addDoc, deleteDoc, doc,
+    onSnapshot, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// Chargement du pseudo
-const connectedInfo = document.getElementById("connectedInfo");
-let username = localStorage.getItem("peak_username") || "Joueur";
-
-connectedInfo.textContent = `Connecté en tant que ${username}`;
-
-// Changer de pseudo
-document.getElementById("changeNameBtn").onclick = () => {
-    const newName = prompt("Nouveau pseudo :");
-    if (!newName) return;
-    username = newName;
-    localStorage.setItem("peak_username", newName);
-    connectedInfo.textContent = `Connecté en tant que ${newName}`;
-};
-
-// Déconnexion
-document.getElementById("logoutBtn").onclick = () => {
-    localStorage.removeItem("peak_username");
-    location.reload();
-};
+// Référence Firestore
+const lobbyRef = collection(db, "lobbies");
 
 // =====================
-// Gestion des lobbys
+// Ajouter un lobby
 // =====================
-
-const lobbyList = document.getElementById("lobbyList");
-const addLobbyBtn = document.getElementById("addLobby");
-
-function loadLobbies() {
-    const lobbies = JSON.parse(localStorage.getItem("peak_lobbies") || "[]");
-    lobbyList.innerHTML = "";
-
-    lobbies.forEach((lobby, index) => {
-        const div = document.createElement("div");
-        div.className = "lobby";
-
-        div.innerHTML = `
-            <p><strong>${lobby.name}</strong></p>
-            <p>${lobby.desc}</p>
-            <p><a href="${lobby.link}">${lobby.link}</a></p>
-            ${lobby.voice ? `<p>Salon vocal : <a href="${lobby.voice}">${lobby.voice}</a></p>` : ""}
-            <button class="primary" onclick="joinLobby('${lobby.link}')">Rejoindre</button>
-            <button class="danger" onclick="deleteLobby(${index})">Supprimer</button>
-        `;
-
-        lobbyList.appendChild(div);
-    });
-}
-
-function joinLobby(link) {
-    window.location.href = link;
-}
-
-function deleteLobby(index) {
-    const lobbies = JSON.parse(localStorage.getItem("peak_lobbies") || "[]");
-    lobbies.splice(index, 1);
-    localStorage.setItem("peak_lobbies", JSON.stringify(lobbies));
-    loadLobbies();
-}
-
-addLobbyBtn.onclick = () => {
+document.getElementById("addLobby").onclick = async () => {
     const link = document.getElementById("steamLink").value;
     const name = document.getElementById("lobbyName").value;
     const desc = document.getElementById("lobbyDesc").value;
@@ -73,12 +21,46 @@ addLobbyBtn.onclick = () => {
         return;
     }
 
-    const lobbies = JSON.parse(localStorage.getItem("peak_lobbies") || "[]");
-    lobbies.push({ link, name, desc, voice });
-    localStorage.setItem("peak_lobbies", JSON.stringify(lobbies));
-
-    loadLobbies();
+    await addDoc(lobbyRef, {
+        link,
+        name,
+        desc,
+        voice,
+        createdAt: serverTimestamp()
+    });
 };
-// GitHub Reload
-// Initialisation
-loadLobbies();
+
+// =====================
+// Affichage en temps réel
+// =====================
+const lobbyList = document.getElementById("lobbyList");
+
+onSnapshot(lobbyRef, (snapshot) => {
+    lobbyList.innerHTML = "";
+
+    snapshot.forEach((docSnap) => {
+        const lobby = docSnap.data();
+        const id = docSnap.id;
+
+        const div = document.createElement("div");
+        div.className = "lobby";
+
+        div.innerHTML = `
+            <p><strong>${lobby.name}</strong></p>
+            <p>${lobby.desc}</p>
+            <p><a href="${lobby.link}">${lobby.link}</a></p>
+            ${lobby.voice ? `<p>Salon vocal : <a href="${lobby.voice}">${lobby.voice}</a></p>` : ""}
+            <button class="primary" onclick="window.location.href='${lobby.link}'">Rejoindre</button>
+            <button class="danger" onclick="deleteLobby('${id}')">Supprimer</button>
+        `;
+
+        lobbyList.appendChild(div);
+    });
+});
+
+// =====================
+// Supprimer un lobby
+// =====================
+window.deleteLobby = async (id) => {
+    await deleteDoc(doc(db, "lobbies", id));
+};
