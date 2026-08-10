@@ -1,4 +1,4 @@
-# 🦀 Peak Multiplayer Hub
+# 🦀 Peak Multiplayer Hub (Beta)
 
 A small web hub inspired by the **Peak** style, allowing you to easily save, organize, and join Steam lobbies. Features include a cartoon interface, Peak colors, local persistence, and convenient search functionality.
 
@@ -20,3 +20,7 @@ A small web hub inspired by the **Peak** style, allowing you to easily save, org
 
 Available via GitHub Pages:
 *petitboxeryt.github.io/peak-hub*
+
+---
+
+Version 0.66
